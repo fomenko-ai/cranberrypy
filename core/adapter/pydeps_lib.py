@@ -5,13 +5,19 @@ import sys
 import logging
 from typing import Tuple
 
-from pydeps.configs import Config
 from pydeps import py2depgraph, cli, target
 from pydeps.pydeps import externals
 from pydeps.depgraph import DepGraph
 
 
 log = logging.getLogger(__name__)
+
+
+class Project(target.Target):
+    def __init__(self, path):
+        super().__init__(path)
+        self.path = path
+        self.filename = f"{self.modpath.replace('.', '_')}.json"
 
 
 def _pydeps(trgt, **kw) -> DepGraph:
@@ -24,7 +30,7 @@ def _pydeps(trgt, **kw) -> DepGraph:
     return dep_graph
 
 
-def pydeps(**args) -> Tuple[DepGraph, str]:
+def pydeps(file_path) -> Tuple[str, DepGraph]:
     """Entry point for the ``pydeps`` command.
 
        This function should do all the initial parameter and environment
@@ -32,7 +38,7 @@ def pydeps(**args) -> Tuple[DepGraph, str]:
        execution path).
     """
     sys.setrecursionlimit(10000)
-    _args = dict(iter(Config(**args))) if args else cli.parse_args(sys.argv[1:])
+    _args = cli.parse_args([file_path, '--config', 'cranberrypy.ini'])
     _args['curdir'] = os.getcwd()
     inp = target.Target(_args['fname'])
     log.debug("Target: %r", inp)
@@ -45,7 +51,7 @@ def pydeps(**args) -> Tuple[DepGraph, str]:
             inp.modpath.replace('.', '_') + '.' + _args.get('format', 'svg')
         )
 
-    _args['filename'] = inp.modpath.replace('.', '_') + '.json'
+    _args['module_name'] = inp.modpath
 
     with inp.chdir_work():
         # log.debug("Current directory: %s", os.getcwd())
@@ -61,7 +67,7 @@ def pydeps(**args) -> Tuple[DepGraph, str]:
         else:
             # this is the call you're looking for :-)
             try:
-                return _pydeps(inp, **_args), _args['filename']
+                return _args['module_name'], _pydeps(inp, **_args)
             except (OSError, RuntimeError) as cause:
                 if log.isEnabledFor(logging.DEBUG):
                     # we only want to log the exception if we're in debug mode
