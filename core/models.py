@@ -2,7 +2,7 @@ import ast
 import logging
 
 
-class Module:
+class ImportModule:
     def __init__(self, name, file_path):
         self.name = name
         self.file_path = file_path

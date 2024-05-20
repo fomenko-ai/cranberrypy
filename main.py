@@ -5,7 +5,7 @@ from core.graph2json import graph2json
 
 
 def main():
-    json_data = {}
+    json_data = {"modules": {}}
     project = Project(path=CONFIG.project_path)
     excluded_folders = CONFIG.excluded_folders
     file_paths = recursive_file_scan(
@@ -15,8 +15,8 @@ def main():
     for file_path in file_paths:
         module_name, graph = pydeps(file_path)
         data = graph2json(graph)
-        if data['modules']:
-            json_data[module_name] = data
+        if data['imports']:
+            json_data['modules'][module_name] = data
     write_json(json_data, project.filename)
 
 
