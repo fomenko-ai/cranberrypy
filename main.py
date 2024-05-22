@@ -14,9 +14,9 @@ def main():
     )
     for file_path in file_paths:
         module_name, graph = pydeps(file_path)
-        data = graph2json(graph)
-        if data['imports']:
-            json_data['modules'][module_name] = data
+        data = graph2json(graph, file_path)
+        if data:
+            json_data['modules'][module_name] = {"imports": data}
     write_json(json_data, project.filename)
 
 

@@ -1,36 +1,22 @@
 from pydeps.depgraph import DepGraph
 
-from core.models import ImportModule
+from core.models import SourceModule, ImportModule
 
 
-def graph2json(graph: DepGraph):
-    imports = []
-    for module_name, source in graph.sources.items():
-        if module_name.endswith('.py'):
-            continue
-        if source.path and source.path.endswith('.py'):
-            module = ImportModule(module_name, source.path)
-            if module.is_empty:
+def graph2json(graph: DepGraph, file_path: str):
+    module = SourceModule(file_path)
+    if graph and graph.sources:
+        for import_name, source in graph.sources.items():
+            if import_name.endswith('.py'):
                 continue
-            if module.type in ['built_in', 'third_party']:
-                continue
-            for import_name in source.imports:
-                if import_name.endswith('.py'):
+            if source.path and source.path.endswith('.py'):
+                _import = ImportModule(source.path)
+                if _import.is_empty:
                     continue
-                if import_name in graph.sources:
-                    if graph.sources[import_name].path and\
-                            graph.sources[import_name].path.endswith('.py'):
-                        import_type = ImportModule.get_type(
-                            graph.sources[import_name].path
-                        )
-                        if import_type:
-                            module.imports[import_type].append(import_name)
-                        else:
-                            module.parse_class_imports(
-                                graph.sources[import_name].name
-                            )
-            imports.append(module)
-
-    return {
-        "imports": {module.name: module.imports for module in imports}
-    }
+                if _import.type:
+                    module.imports[_import.type].append(import_name)
+                else:
+                    module.parse_class_imports(source.name)
+        return module.imports
+    else:
+        return None
