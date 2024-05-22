@@ -3,7 +3,6 @@ import json
 import os
 import sys
 import logging
-from typing import Tuple
 
 from pydeps import py2depgraph, cli, target
 from pydeps.pydeps import externals
@@ -11,13 +10,6 @@ from pydeps.depgraph import DepGraph
 
 
 log = logging.getLogger(__name__)
-
-
-class Project(target.Target):
-    def __init__(self, path):
-        super().__init__(path)
-        self.path = path
-        self.filename = f"{self.modpath.replace('.', '_')}.json"
 
 
 def _pydeps(trgt, **kw) -> DepGraph:
@@ -30,7 +22,7 @@ def _pydeps(trgt, **kw) -> DepGraph:
     return dep_graph
 
 
-def pydeps(file_path) -> Tuple[str, DepGraph]:
+def pydeps(file_path) -> DepGraph:
     """Entry point for the ``pydeps`` command.
 
        This function should do all the initial parameter and environment
@@ -51,8 +43,6 @@ def pydeps(file_path) -> Tuple[str, DepGraph]:
             inp.modpath.replace('.', '_') + '.' + _args.get('format', 'svg')
         )
 
-    _args['module_name'] = inp.modpath
-
     with inp.chdir_work():
         # log.debug("Current directory: %s", os.getcwd())
         _args['fname'] = inp.fname
@@ -67,7 +57,7 @@ def pydeps(file_path) -> Tuple[str, DepGraph]:
         else:
             # this is the call you're looking for :-)
             try:
-                return _args['module_name'], _pydeps(inp, **_args)
+                return _pydeps(inp, **_args)
             except (OSError, RuntimeError) as cause:
                 if log.isEnabledFor(logging.DEBUG):
                     # we only want to log the exception if we're in debug mode

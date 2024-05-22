@@ -1,5 +1,7 @@
 import configparser
 
+from pydeps.target import Target
+
 
 class Config:
     def __init__(self, filename):
@@ -10,6 +12,9 @@ class Config:
             'main', 'excluded_paths'
         ).replace('\n', ' ')
 
+        self.target = Target(self.project_path)
+        self.filename = f"{self.target.modpath.replace('.', '_')}.json"
+
     @property
     def sections(self):
         return self.config.sections()
@@ -17,24 +22,6 @@ class Config:
     def get(self, section, option):
         try:
             return self.config.get(section, option)
-        except configparser.Error:
-            return None
-
-    def getint(self, section, option):
-        try:
-            return self.config.getint(section, option)
-        except configparser.Error:
-            return None
-
-    def getfloat(self, section, option):
-        try:
-            return self.config.getfloat(section, option)
-        except configparser.Error:
-            return None
-
-    def getboolean(self, section, option):
-        try:
-            return self.config.getboolean(section, option)
         except configparser.Error:
             return None
 
