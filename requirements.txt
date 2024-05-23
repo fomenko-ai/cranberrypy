@@ -1,2 +1,3 @@
 pydeps==1.12.20
+pytest==8.2.1
 stdlib-list==0.10.0
