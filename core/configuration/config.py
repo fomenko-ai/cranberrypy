@@ -13,7 +13,7 @@ class Config:
         ).replace('\n', ' ')
 
         self.target = Target(self.project_path)
-        self.filename = f"{self.target.modpath.replace('.', '_')}.json"
+        self.base_filename = self.target.modpath.replace('.', '_')
 
     @property
     def sections(self):
@@ -24,6 +24,3 @@ class Config:
             return self.config.get(section, option)
         except configparser.Error:
             return None
-
-
-CONFIG = Config('/path_to_your_folder/cranberrypy.ini')

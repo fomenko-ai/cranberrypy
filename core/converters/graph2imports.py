@@ -1,15 +1,16 @@
 from pydeps.depgraph import DepGraph
 
-from core.modules import SourceModule, ImportModule
+from core.converters.base import AbstractConverter
+from core.modules.source_module import SourceModule
+from core.modules.import_module import ImportModule
 from core.utils import write_json
 
 
-class Graph2Json:
-    def __init__(self, config):
-        self.filename = config.filename
-        self.json_data = {"modules": {}}
+class Graph2Imports(AbstractConverter):
 
     def add(self, graph: DepGraph):
+        if not self.data:
+            self.data = {"modules": {}}
         module = SourceModule(graph.target.path)
         if graph and graph.sources:
             for import_name, source in graph.sources.items():
@@ -24,9 +25,9 @@ class Graph2Json:
                     else:
                         module.parse_class_imports(source.name)
             if module.imports:
-                self.json_data['modules'][graph.target.modpath] = {
+                self.data['modules'][graph.target.modpath] = {
                     "imports": module.imports
                 }
 
     def save(self):
-        write_json(self.json_data, self.filename)
+        write_json(self.data, f"{self.filename}_IMPORTS.json")
