@@ -17,7 +17,7 @@ def test_initial_type_none(module_instance):
 
 
 def test_initial_imports_check(module_instance):
-    assert module_instance.is_empty is False
+    assert module_instance.has_imports is True
 
 
 def test_get_type_built_in(module_instance):
@@ -36,5 +36,4 @@ def test_get_type_none(module_instance):
 
 
 def test_check_imports(module_instance):
-    module_instance._ImportModule__check_imports()
-    assert module_instance.is_empty == False
+    assert module_instance.has_imports is True

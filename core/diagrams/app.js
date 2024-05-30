@@ -14,34 +14,73 @@ let diagramData = readJsonFile('./core/diagrams/data.json')
 
 console.log(diagramData)
 
+function getLayeredDigraphLayout(){
+    return new go.LayeredDigraphLayout(
+          {
+              direction: 90,
+              layerSpacing: 200,
+              columnSpacing: 100
+          }
+      )
+}
+
+function getForceDirectedLayout(){
+    return new go.ForceDirectedLayout()
+}
+
+function dipgraphDiagram(){
+    diagram.layout = getLayeredDigraphLayout()
+}
+
+function forceDirectedDiagram(){
+    diagram.layout = getForceDirectedLayout()
+}
+
 const diagram =
   new go.Diagram("DiagramDiv",
     {
       "undoManager.isEnabled": true,
-    layout: new go.LayeredDigraphLayout({layerSpacing: 200,  columnSpacing: 20 })
+      layout: getForceDirectedLayout()
     });
 
+function getNodeDataArray(nodeKeys) {
+    let nodes = []
+    let groupKeys = []
+    for (let node of diagramData.nodes) {
+        if (nodeKeys.includes(node.key)) {
+            nodes.push(node);
+            if (node.hasOwnProperty("group")) {
+                groupKeys.push(node.group)
+            }
+        }
+    }
+    let groups = diagramData.nodes.filter(node => groupKeys.includes(node.key))
+    return nodes.concat(groups);
+}
+
 function showImports(e, obj) {
+    dipgraphDiagram()
     let linkDataArray = diagramData.links.filter(node => node.to === obj.part.data.key);
     let nodeKeys = [obj.part.data.key]
     for (let link of linkDataArray) {
         nodeKeys.push(link.from);
     }
-    let nodeDataArray =  diagramData.nodes.filter(node => nodeKeys.includes(node.key));
-    diagram.model = new go.GraphLinksModel(nodeDataArray, linkDataArray);
+    diagram.model = new go.GraphLinksModel(getNodeDataArray(nodeKeys), linkDataArray);
+
 }
 
 function showExports(e, obj) {
+    dipgraphDiagram()
     let linkDataArray = diagramData.links.filter(node => node.from === obj.part.data.key);
     let nodeKeys = [obj.part.data.key]
     for (let link of linkDataArray) {
         nodeKeys.push(link.to);
     }
-    let nodeDataArray =  diagramData.nodes.filter(node => nodeKeys.includes(node.key));
-    diagram.model = new go.GraphLinksModel(nodeDataArray, linkDataArray);
+    diagram.model = new go.GraphLinksModel(getNodeDataArray(nodeKeys), linkDataArray);
 }
 
 function showAllDependencies(e, obj) {
+    dipgraphDiagram()
     let linkDataArray = diagramData.links.filter(
         node => node.to === obj.part.data.key || node.from === obj.part.data.key
     );
@@ -53,14 +92,13 @@ function showAllDependencies(e, obj) {
             nodeKeys.push(link.from);
         }
     }
-    let nodeDataArray =  diagramData.nodes.filter(node => nodeKeys.includes(node.key));
-    diagram.model = new go.GraphLinksModel(nodeDataArray, linkDataArray);
+    diagram.model = new go.GraphLinksModel(getNodeDataArray(nodeKeys), linkDataArray);
 }
 
 function showAllModules(e, obj) {
+    forceDirectedDiagram()
     let nodeDataArray = diagramData.nodes;
-    let linkDataArray = diagramData.links;
-    diagram.model = new go.GraphLinksModel(nodeDataArray, linkDataArray);
+    diagram.model = new go.GraphLinksModel(nodeDataArray);
 }
 
 const nodeContextMenu =
@@ -78,7 +116,6 @@ const nodeContextMenu =
 
 diagram.nodeTemplate =
   new go.Node("Auto", { contextMenu: nodeContextMenu })
-    .bind("location", "loc", go.Point.parse)
     .add(
       new go.Shape("RoundedRectangle")
         .bind("fill", "color"),
@@ -88,8 +125,8 @@ diagram.nodeTemplate =
 
 diagram.linkTemplate =
   new go.Link({
-      routing: go.Routing.AvoidsNodes ,
-      curve: go.Curve.Bezier,
+      routing: go.Routing.AvoidsNodes,
+      curve: go.Curve.JumpGap,
       mouseEnter: (e, link) => link.elt(0).stroke = "rgba(0,90,156,0.3)",
       mouseLeave: (e, link) => link.elt(0).stroke = "transparent"
     })
@@ -97,7 +134,7 @@ diagram.linkTemplate =
       new go.Shape( { isPanelMain: true, stroke: "transparent", strokeWidth: 8 }),
       new go.Shape( { isPanelMain: true }),
       new go.Shape( { toArrow: "Standard" }),
-      new go.TextBlock({ text: "a Text Block", background: "white", margin: 2 })
+      new go.TextBlock({ text: "Text Block", background: "white", margin: 2 })
         .bind("text")
     );
 
@@ -109,6 +146,5 @@ diagram.contextMenu =
     );
 
 let nodeDataArray = diagramData.nodes;
-let linkDataArray = diagramData.links;
 
-diagram.model = new go.GraphLinksModel(nodeDataArray, linkDataArray);
+diagram.model = new go.GraphLinksModel(nodeDataArray);
