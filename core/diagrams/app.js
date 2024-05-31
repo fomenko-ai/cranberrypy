@@ -95,6 +95,15 @@ function showAllDependencies(e, obj) {
     diagram.model = new go.GraphLinksModel(getNodeDataArray(nodeKeys), linkDataArray);
 }
 
+function showGroupModules(gropu_key){
+    function _showGroupModules(e, obj) {
+        forceDirectedDiagram()
+        let nodeDataArray = diagramData.nodes.filter(node => node.group === gropu_key || node.key === gropu_key);
+        diagram.model = new go.GraphLinksModel(nodeDataArray);
+    }
+    return _showGroupModules
+}
+
 function showAllModules(e, obj) {
     forceDirectedDiagram()
     let nodeDataArray = diagramData.nodes;
@@ -138,13 +147,38 @@ diagram.linkTemplate =
         .bind("text")
     );
 
+function getGroupContextMenu(groups){
+    let menu = [
+        go.GraphObject.build("ContextMenuButton", { click: showAllModules })
+        .add(new go.TextBlock("All modules"))
+    ];
+    let defaultKeys = ["built_in", "third_party"]
+    let groupKeys = []
+    for (let group of groups) {
+        if (!defaultKeys.includes(group.key)) {
+            groupKeys.push(group.key);
+        }
+    }
+    groupKeys.sort()
+    groupKeys = defaultKeys.concat(groupKeys)
+    for (let key of groupKeys) {
+        menu.push(
+            go.GraphObject.build("ContextMenuButton", { click: showGroupModules(key) })
+                .add(new go.TextBlock(key))
+        )
+    }
+    return menu
+}
+
+let groupsArray = diagramData.nodes.filter(node => node.isGroup)
+let groupContextMenu = getGroupContextMenu(groupsArray)
+
 diagram.contextMenu =
   go.GraphObject.build("ContextMenu")
     .add(
-      go.GraphObject.build("ContextMenuButton", { click: showAllModules })
-        .add(new go.TextBlock("All modules"))
+      ...groupContextMenu
     );
 
-let nodeDataArray = diagramData.nodes;
 
+let nodeDataArray = diagramData.nodes;
 diagram.model = new go.GraphLinksModel(nodeDataArray);
