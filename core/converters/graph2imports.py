@@ -12,8 +12,7 @@ class Graph2Imports(AbstractConverter):
         if not self.data:
             self.data = {"modules": {}, "dirnames": {}}
         if graph and graph.sources:
-            if module.imports is None:
-                module.imports = {}
+            module.parse()
             for import_name, source in graph.sources.items():
                 if import_name.endswith('.py'):
                     continue
@@ -24,10 +23,10 @@ class Graph2Imports(AbstractConverter):
                             self.data["dirnames"][import_name] = _import.type
                         else:
                             self.data["dirnames"][import_name] = _import.dirname
-                        module.parse_imports(source.name)
+                        module.select_import(source.name)
             if module.imports:
                 self.data['modules'][graph.target.modpath] = {
-                    "imports": module.imports
+                    "imports": module.imports, "classes": module.classes
                 }
                 self.data["dirnames"][graph.target.modpath] = module.dirname
 
