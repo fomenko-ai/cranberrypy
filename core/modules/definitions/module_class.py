@@ -12,34 +12,37 @@ class ModuleClass(Base):
         self.bases = definition.bases
         self.attributes = None
         self.methods = None
-        self.dependencies = None
-        self.compositions = None
+        self.inheritance = None
+        self.calls = None
 
         self.__parse()
 
     def __parse(self):
+        self.attributes = []
         self.methods = []
-        self.dependencies = []
-        self.compositions = set()
+        self.inheritance = []
+        self.calls = set()
 
         if self.bases:
             for base in self.bases:
                 if isinstance(base, ast.Name) and \
                    isinstance(base.ctx, ast.Load):
-                    self.dependencies.append(base.id)
+                    self.inheritance.append(base.id)
         if self.body:
             for _def in self.body:
                 if isinstance(_def, ast.FunctionDef):
                     method = ClassMethod(_def)
                     if _def.name == '__init__':
-                        self.attributes = method.assignments
+                        if method.assignments:
+                            self.attributes.extend(method.assignments)
                     else:
-                        self.methods.append(method.name)
+                        if method.name:
+                            self.methods.append(method.name)
                     if method.calls:
                         for call in method.calls:
                             if call != 'super':
-                                self.compositions.add(call)
-        self.compositions = list(self.compositions)
+                                self.calls.add(call)
+        self.calls = list(self.calls)
 
     def to_dict(self):
         return {
