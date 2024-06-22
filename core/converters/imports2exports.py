@@ -16,7 +16,7 @@ class Imports2Exports(AbstractConverter):
                 return 'is_inheritance'
             if export_value in cls_structure['calls']:
                 return 'is_call'
-        return ''
+        return 'is_undefined'
 
     def add(self, modules: dict):
         if not self.data:

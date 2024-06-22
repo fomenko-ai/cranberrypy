@@ -28,8 +28,7 @@ class AbstractModule:
         if self._ast_root:
             try:
                 for node in ast.walk(self._ast_root):
-                    if isinstance(node, ast.Import) or\
-                       isinstance(node, ast.ImportFrom):
+                    if isinstance(node, (ast.Import, ast.ImportFrom)):
                         self.has_imports = True
                         break
             except Exception as e:

@@ -1,11 +1,12 @@
 import ast
 
 from core.modules.definitions.base import Base
+from core.modules.statements.assignment import Assignment
 from core.modules.definitions.class_method import ClassMethod
 
 
 class ModuleClass(Base):
-    excluded_keys = 'body', 'name', 'bases'
+    excluded_keys = 'definition', 'body', 'name', 'bases'
 
     def __init__(self, definition: ast.ClassDef):
         super().__init__(definition)
@@ -30,14 +31,16 @@ class ModuleClass(Base):
                     self.inheritance.append(base.id)
         if self.body:
             for _def in self.body:
-                if isinstance(_def, ast.FunctionDef):
+                if isinstance(_def, (ast.Assign, ast.AnnAssign)):
+                    assignment = Assignment(_def)
+                    self.attributes.append(assignment.to_dict())
+                elif isinstance(_def, ast.FunctionDef):
                     method = ClassMethod(_def)
                     if _def.name == '__init__':
                         if method.assignments:
                             self.attributes.extend(method.assignments)
-                    else:
-                        if method.name:
-                            self.methods.append(method.name)
+                    if method.name:
+                        self.methods.append(method.to_dict())
                     if method.calls:
                         for call in method.calls:
                             if call != 'super':

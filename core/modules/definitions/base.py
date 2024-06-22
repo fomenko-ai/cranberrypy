@@ -1,6 +1,7 @@
 class Base:
 
     def __init__(self, definition):
+        self.definition = definition
         self.body = definition.body
         self.name = definition.name
 
