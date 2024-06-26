@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 
 from core.converters.base import AbstractConverter
 from core.utils import write_json
@@ -7,16 +7,32 @@ from core.utils import write_json
 class Imports2Exports(AbstractConverter):
 
     @staticmethod
-    def __get_export_type(
+    def __get_dependency_type(
         export_value: str,
-        classes: Dict[str, dict]
+        structure: Dict[str, List]
     ) -> str:
-        for cls, cls_structure in classes.items():
-            if export_value in cls_structure['inheritance']:
-                return 'is_inheritance'
-            if export_value in cls_structure['calls']:
-                return 'is_call'
+        if export_value in structure['inheritance']:
+            return 'is_inheritance'
+        if export_value in structure['calls']:
+            return 'is_call'
         return 'is_undefined'
+
+    def __get_exports(
+        self,
+        export_value: str,
+        module_name: str,
+        classes: Dict[str, dict]
+    ) -> List:
+        exports = []
+        for cls, structure in classes.items():
+            exports.append(
+                (
+                    module_name,
+                    cls,
+                    self.__get_dependency_type(export_value, structure)
+                )
+            )
+        return exports
 
     def add(self, modules: dict):
         if not self.data:
@@ -34,8 +50,8 @@ class Imports2Exports(AbstractConverter):
                     for value in values:
                         if value not in exports:
                             exports[value] = []
-                        exports[value].append(
-                            (module_name, self.__get_export_type(value, classes))
+                        exports[value].extend(
+                            self.__get_exports(value, module_name, classes)
                         )
                 self.data['classes'][module_name] = classes
             self.data['dirnames'] = modules['dirnames']

@@ -26,8 +26,8 @@ let diagramData = readJsonFile('./core/diagrams/data.json')
 
 console.log(diagramData)
 
-function textNodeTemplate(){
-    diagram.nodeTemplate = new go.Node("Auto", { contextMenu: nodeContextMenu })
+function textNodeTemplate(menu){
+    diagram.nodeTemplate = new go.Node("Auto", { contextMenu: menu })
     .add(
       new go.Shape("RoundedRectangle")
         .bind("fill", "color"),
@@ -36,13 +36,23 @@ function textNodeTemplate(){
     );
 }
 
-function shortInfoNodeTemplate(){
-    diagram.nodeTemplate = new go.Node("Auto", { contextMenu: nodeContextMenu })
+function shortInfoNodeTemplate(menu){
+    diagram.nodeTemplate = new go.Node("Auto", { contextMenu: menu })
     .add(
       new go.Shape("RoundedRectangle")
         .bind("fill", "color"),
       new go.TextBlock({ margin: 5, fill: colors.black })
         .bind("text", "shortInfo")
+    );
+}
+
+function fullInfoNodeTemplate(menu){
+    diagram.nodeTemplate = new go.Node("Auto", { contextMenu: menu })
+    .add(
+      new go.Shape("RoundedRectangle")
+        .bind("fill", "color"),
+      new go.TextBlock({ margin: 5, fill: colors.black })
+        .bind("text", "fullInfo")
     );
 }
 
@@ -88,11 +98,22 @@ function getNodeDataArray(selectedNodeKey, nodeKeys) {
     }
     let groups = diagramData.nodes.filter(node => groupKeys.includes(node.key));
     nodes = nodes.concat(groups);
-    nodes.forEach(node => node.key === selectedNodeKey ? node.text = node.fullInfo : node.text = node.shortInfo);
     return nodes;
 }
 
-function showImports(e, obj) {
+function showModuleImports(e, obj) {
+    digraphDiagram();
+    let selectedNodeKey = obj.part.data.key;
+    let linkDataArray = diagramData.links.filter(node => (node.to === selectedNodeKey) && !node.isClass);
+    let nodeKeys = [selectedNodeKey]
+    for (let link of linkDataArray) {
+        nodeKeys.push(link.from);
+    }
+    diagram.model = new go.GraphLinksModel(getNodeDataArray(selectedNodeKey, nodeKeys), linkDataArray);
+    shortInfoNodeTemplate(nodeModuleContextMenu);
+}
+
+function showClassImports(e, obj) {
     digraphDiagram();
     let selectedNodeKey = obj.part.data.key;
     let linkDataArray = diagramData.links.filter(node => node.to === selectedNodeKey);
@@ -101,10 +122,22 @@ function showImports(e, obj) {
         nodeKeys.push(link.from);
     }
     diagram.model = new go.GraphLinksModel(getNodeDataArray(selectedNodeKey, nodeKeys), linkDataArray);
-    textNodeTemplate();
+    fullInfoNodeTemplate(nodeClassContextMenu);
 }
 
-function showExports(e, obj) {
+function showModuleExports(e, obj) {
+    digraphDiagram();
+    let selectedNodeKey = obj.part.data.key;
+    let linkDataArray = diagramData.links.filter(node => (node.from === selectedNodeKey) && !node.isClass);
+    let nodeKeys = [selectedNodeKey]
+    for (let link of linkDataArray) {
+        nodeKeys.push(link.to);
+    }
+    diagram.model = new go.GraphLinksModel(getNodeDataArray(selectedNodeKey, nodeKeys), linkDataArray);
+    shortInfoNodeTemplate(nodeModuleContextMenu);
+}
+
+function showClassExports(e, obj) {
     digraphDiagram();
     let selectedNodeKey = obj.part.data.key;
     let linkDataArray = diagramData.links.filter(node => node.from === selectedNodeKey);
@@ -113,58 +146,106 @@ function showExports(e, obj) {
         nodeKeys.push(link.to);
     }
     diagram.model = new go.GraphLinksModel(getNodeDataArray(selectedNodeKey, nodeKeys), linkDataArray);
-    textNodeTemplate();
+    fullInfoNodeTemplate(nodeClassContextMenu);
 }
 
-function showAllDependencies(e, obj) {
+function showAllModuleDependencies(e, obj) {
     digraphDiagram();
     let selectedNodeKey = obj.part.data.key;
     let linkDataArray = diagramData.links.filter(
-        node => node.to === selectedNodeKey || node.from === selectedNodeKey
+        node => (node.to === selectedNodeKey || node.from === selectedNodeKey) && !node.isClass
     );
-    let nodeKeys = [obj.part.data.key]
+    let nodeKeys = [selectedNodeKey ];
     for (let link of linkDataArray) {
-        if (link.from === obj.part.data.key){
+        if (link.from === selectedNodeKey){
             nodeKeys.push(link.to);
         } else {
             nodeKeys.push(link.from);
         }
     }
     diagram.model = new go.GraphLinksModel(getNodeDataArray(selectedNodeKey, nodeKeys), linkDataArray);
-    textNodeTemplate();
+    textNodeTemplate(nodeModuleContextMenu);
+}
+
+function showAllClassDependencies(e, obj) {
+    digraphDiagram();
+    let selectedNodeKey = obj.part.data.key;
+    let linkDataArray = diagramData.links.filter(
+        node => node.to === selectedNodeKey || node.from === selectedNodeKey
+    );
+    let nodeKeys = [selectedNodeKey]
+    for (let link of linkDataArray) {
+        if (link.from === selectedNodeKey){
+            nodeKeys.push(link.to);
+        } else {
+            nodeKeys.push(link.from);
+        }
+    }
+    diagram.model = new go.GraphLinksModel(getNodeDataArray(selectedNodeKey, nodeKeys), linkDataArray);
+    fullInfoNodeTemplate(nodeClassContextMenu);
 }
 
 function showGroupModules(selectedGroupKey){
     function _showGroupModules(e, obj) {
         forceDirectedDiagram();
-        let nodeDataArray = diagramData.nodes.filter(node => node.group === selectedGroupKey || node.key === selectedGroupKey);
+        let nodeDataArray = diagramData.nodes.filter(node => (node.group === selectedGroupKey || node.key === selectedGroupKey) && !node.isClass);
         diagram.model = new go.GraphLinksModel(nodeDataArray);
-        shortInfoNodeTemplate();
+        shortInfoNodeTemplate(nodeModuleContextMenu);
     }
     return _showGroupModules
 }
 
-function showAllModules(e, obj) {
+function showModuleClasses(e, obj) {
     forceDirectedDiagram()
-    let nodeDataArray = diagramData.nodes;
-    diagram.model = new go.GraphLinksModel(nodeDataArray);
-    shortInfoNodeTemplate()
+    let selectedNode = obj.part.data;
+    let selectedNodeKey = selectedNode.key;
+    let nodeDataArray = diagramData.nodes.filter(node => node.module === selectedNodeKey);
+    if (nodeDataArray) {
+        let nodeKeys = nodeDataArray.map(node => node.key)
+        diagram.model = new go.GraphLinksModel(getNodeDataArray(selectedNodeKey, nodeKeys));
+        fullInfoNodeTemplate(nodeClassContextMenu);
+    } else {
+        diagram.model = new go.GraphLinksModel(getNodeDataArray(selectedNodeKey, [selectedNodeKey]));
+        shortInfoNodeTemplate(nodeModuleContextMenu);
+    }
 }
 
-const nodeContextMenu =
+function showAllModules(e, obj) {
+    forceDirectedDiagram()
+    let nodeDataArray = diagramData.nodes.filter(node => !node.isClass);
+    diagram.model = new go.GraphLinksModel(nodeDataArray);
+    textNodeTemplate(nodeModuleContextMenu)
+}
+
+const nodeModuleContextMenu =
   go.GraphObject.build("ContextMenu")
     .add(
-      go.GraphObject.build("ContextMenuButton", { click: showAllDependencies })
+      go.GraphObject.build("ContextMenuButton", { click: showModuleClasses })
+        .add(new go.TextBlock("Classes")),
+      go.GraphObject.build("ContextMenuButton", { click: showAllModuleDependencies })
         .add(new go.TextBlock("Dependencies")),
-      go.GraphObject.build("ContextMenuButton", { click: showImports })
+      go.GraphObject.build("ContextMenuButton", { click: showModuleImports })
         .add(new go.TextBlock("Imports")),
-      go.GraphObject.build("ContextMenuButton", { click: showExports })
+      go.GraphObject.build("ContextMenuButton", { click: showModuleExports })
         .add(new go.TextBlock("Exports")),
       go.GraphObject.build("ContextMenuButton", { click: showAllModules })
         .add(new go.TextBlock("All modules"))
     );
 
-shortInfoNodeTemplate();
+const nodeClassContextMenu =
+  go.GraphObject.build("ContextMenu")
+    .add(
+      go.GraphObject.build("ContextMenuButton", { click: showAllClassDependencies })
+        .add(new go.TextBlock("Dependencies")),
+      go.GraphObject.build("ContextMenuButton", { click: showClassImports })
+        .add(new go.TextBlock("Imports")),
+      go.GraphObject.build("ContextMenuButton", { click: showClassExports })
+        .add(new go.TextBlock("Exports")),
+      go.GraphObject.build("ContextMenuButton", { click: showAllModules })
+        .add(new go.TextBlock("All modules"))
+    );
+
+textNodeTemplate(nodeModuleContextMenu);
 diagram.linkTemplate =
   new go.Link({
       routing: go.Routing.AvoidsNodes,
@@ -214,5 +295,5 @@ diagram.contextMenu =
     );
 
 
-let nodeDataArray = diagramData.nodes;
+let nodeDataArray = diagramData.nodes.filter(node => !node.isClass);
 diagram.model = new go.GraphLinksModel(nodeDataArray);
