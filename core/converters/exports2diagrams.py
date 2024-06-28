@@ -127,9 +127,10 @@ class Exports2Diagrams(AbstractConverter):
                     info.append(f'\n{line}')
             else:
                 info.append(f'\n{class_name}')
-                info.extend(
-                    self.__cls_structure(classes[module_name][class_name])
-                )
+                if class_name in classes[module_name]:
+                    info.extend(
+                        self.__cls_structure(classes[module_name][class_name])
+                    )
         return '\n'.join(info)
 
     def __short_info(
