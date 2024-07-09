@@ -11,24 +11,31 @@ class Graph2Imports(AbstractConverter):
     def add(self, module: SourceModule, graph: DepGraph):
         if not self.data:
             self.data = {"modules": {}, "dirnames": {}}
-        if graph and graph.sources:
+        if graph and graph.sources and graph.sources.get(module.name):
             module.parse()
-            for import_name, source in graph.sources.items():
-                if import_name.endswith('.py'):
-                    continue
-                if source.path and source.path.endswith('.py'):
-                    _import = ImportModule(source.path)
-                    if _import.has_imports:
-                        if _import.type:
-                            self.data["dirnames"][import_name] = _import.type
-                        else:
-                            self.data["dirnames"][import_name] = _import.dirname
-                        module.select_import(source.name)
+            imports = graph.sources[module.name].imports
+            if imports:
+                for import_name in imports:
+                    source = graph.sources[import_name]
+                    if import_name.endswith('.py'):
+                        continue
+                    if source.path and source.path.endswith('.py'):
+                        _import = ImportModule(source.path)
+                        if not _import.is_empty:
+                            if _import.type:
+                                self.data["dirnames"][
+                                    import_name
+                                ] = _import.type
+                            else:
+                                self.data["dirnames"][
+                                    import_name
+                                ] = _import.dirname
+                            module.select_import(source.name)
             if module.imports:
-                self.data['modules'][graph.target.modpath] = {
+                self.data['modules'][module.name] = {
                     "imports": module.imports, "classes": module.classes
                 }
-                self.data["dirnames"][graph.target.modpath] = module.dirname
+                self.data["dirnames"][module.name] = module.dirname
 
     def save(self):
         write_json(self.data, f"{self.filename}_IMPORTS.json")

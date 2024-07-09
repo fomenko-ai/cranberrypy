@@ -9,7 +9,7 @@ from core.modules.source_module import SourceModule
 from core.adapter.pydeps_lib import pydeps
 
 
-CONFIG = Config('/path_to/cranberrypy.ini')
+CONFIG = Config('cranberrypy.ini')
 LOGGER = logging.getLogger(__name__)
 
 
@@ -19,15 +19,20 @@ def main():
         graph2imports = Graph2Imports(config=CONFIG)
         imports2exports = Imports2Exports(config=CONFIG)
         exports2diagrams = Exports2Diagrams(config=CONFIG)
-        
+
+        graphs = {}
         for file_path in project.file_paths:
             try:
                 module = SourceModule(file_path)
                 if module.has_imports:
-                    graph = pydeps(file_path)
+                    if module.workdir in graphs:
+                        graph = graphs[module.workdir]
+                    else:
+                        graph = pydeps(module.workdir)
+                        graphs[module.workdir] = graph
                     graph2imports.add(module, graph)
             except Exception as e:
-                LOGGER.error(f"File path: {file_path}, error: {e}")
+                LOGGER.error(f"File path: {file_path}. Error: {e}.")
         graph2imports.save()
 
         imports2exports.add(graph2imports.data)
