@@ -16,6 +16,10 @@ def test_initial_type_none(module_instance):
     assert module_instance.type is None
 
 
+def test_initial_empty_check(module_instance):
+    assert module_instance.is_empty is False
+
+
 def test_initial_imports_check(module_instance):
     assert module_instance.has_imports is True
 

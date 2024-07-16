@@ -4,9 +4,10 @@ from pydeps.target import Target
 
 
 class Config:
-    def __init__(self, filename):
+    def __init__(self, file_path):
+        self.file_path = file_path
         self.config = configparser.ConfigParser()
-        self.config.read(filename)
+        self.config.read(file_path)
         self.project_path = self.config.get('main', 'project_path')
         self.excluded_folders = self.config.get(
             'main', 'excluded_paths'
