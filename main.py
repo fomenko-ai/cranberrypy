@@ -6,7 +6,6 @@ from core.converters.graph2imports import Graph2Imports
 from core.converters.imports2exports import Imports2Exports
 from core.converters.exports2diagrams import Exports2Diagrams
 from core.modules.source_module import SourceModule
-from core.adapter.pydeps_lib import pydeps
 
 
 CONFIG = Config('cranberrypy.ini')
@@ -20,16 +19,13 @@ def main():
         imports2exports = Imports2Exports(config=CONFIG)
         exports2diagrams = Exports2Diagrams(config=CONFIG)
 
-        graphs = {}
+        from core.adapter.pydeps_lib import pydeps
+        graph = pydeps(project.path)
+
         for file_path in project.file_paths:
             try:
                 module = SourceModule(file_path)
                 if module.has_imports:
-                    if module.workdir in graphs:
-                        graph = graphs[module.workdir]
-                    else:
-                        graph = pydeps(module.workdir)
-                        graphs[module.workdir] = graph
                     graph2imports.add(module, graph)
             except Exception as e:
                 LOGGER.error(f"File path: {file_path}. Error: {e}.")

@@ -6,6 +6,8 @@ import logging
 from pydeps import py2depgraph, cli, target
 from pydeps.depgraph import DepGraph
 
+from main import CONFIG
+
 
 log = logging.getLogger(__name__)
 
@@ -28,7 +30,7 @@ def pydeps(workdir) -> DepGraph:
        execution path).
     """
     sys.setrecursionlimit(10000)
-    _args = cli.parse_args([workdir, '--config', 'cranberrypy.ini'])
+    _args = cli.parse_args([workdir, '--config', CONFIG.file_path])
     _args['curdir'] = os.getcwd()
     inp = target.Target(_args['fname'])
     log.debug("Target: %r", inp)
