@@ -1,7 +1,7 @@
-import logging
 import ast
 
 from core.modules.statements.base import Base
+from main import LOGGER
 
 
 class Expression(Base):
@@ -23,4 +23,4 @@ class Expression(Base):
                         self.recursion_class_call_scan(self.value)
                     )
                 except Exception as e:
-                    logging.error(e)
+                    LOGGER.error(e)

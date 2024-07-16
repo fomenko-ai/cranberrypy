@@ -1,8 +1,8 @@
 import ast
-import logging
 
 from core.modules.base import AbstractModule
 from core.modules.definitions.module_class import ModuleClass
+from main import LOGGER
 
 
 class SourceModule(AbstractModule):
@@ -19,8 +19,8 @@ class SourceModule(AbstractModule):
                 import_name.append(node.module)
                 return '.'.join(import_name)
         except Exception as e:
-            logging.error(
-                f"File path: {self.file_path}. Node: {node.module}. Error: {e}."
+            LOGGER.error(
+                f"FILE PATH: {self.file_path}. NODE: {node.module}. MESSAGE: {e}."
             )
         return node.module
 
@@ -68,7 +68,7 @@ class SourceModule(AbstractModule):
                 for node in ast.walk(self._ast_root):
                     self.__check_node(node)
             except Exception as e:
-                logging.error(f"File path: {self.file_path}. Error: {e}.")
+                LOGGER.error(f"FILE PATH: {self.file_path}. MESSAGE: {e}.")
 
     def select_import(self, module_name):
         if module_name in self._all_imports:

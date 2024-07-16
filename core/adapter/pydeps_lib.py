@@ -6,10 +6,7 @@ import logging
 from pydeps import py2depgraph, cli, target
 from pydeps.depgraph import DepGraph
 
-from main import CONFIG
-
-
-log = logging.getLogger(__name__)
+from main import LOGGER
 
 
 def _pydeps(trgt, **kw) -> DepGraph:
@@ -22,7 +19,7 @@ def _pydeps(trgt, **kw) -> DepGraph:
     return dep_graph
 
 
-def pydeps(workdir) -> DepGraph:
+def pydeps(config, workdir) -> DepGraph:
     """Entry point for the ``pydeps`` command.
 
        This function should do all the initial parameter and environment
@@ -30,10 +27,9 @@ def pydeps(workdir) -> DepGraph:
        execution path).
     """
     sys.setrecursionlimit(10000)
-    _args = cli.parse_args([workdir, '--config', CONFIG.file_path])
+    _args = cli.parse_args([workdir, '--config', config.file_path])
     _args['curdir'] = os.getcwd()
     inp = target.Target(_args['fname'])
-    log.debug("Target: %r", inp)
 
     with inp.chdir_work():
         # log.debug("Current directory: %s", os.getcwd())
@@ -44,7 +40,7 @@ def pydeps(workdir) -> DepGraph:
         try:
             return _pydeps(inp, **_args)
         except (OSError, RuntimeError) as cause:
-            if log.isEnabledFor(logging.DEBUG):
+            if LOGGER.isEnabledFor(logging.DEBUG):
                 # we only want to log the exception if we're in debug mode
-                log.exception("While running pydeps:")
+                LOGGER.exception("While running pydeps:")
             cli.error(str(cause))
