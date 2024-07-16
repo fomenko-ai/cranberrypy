@@ -1,8 +1,9 @@
 import os
 import ast
-import logging
 
 from pydeps.target import Target
+
+from main import LOGGER
 
 
 class AbstractModule:
@@ -28,7 +29,7 @@ class AbstractModule:
                     if self._ast_root.body:
                         self.is_empty = False
             except FileNotFoundError:
-                logging.error(f"File not found: {self.file_path}.")
+                LOGGER.error(f"File not found: {self.file_path}.")
 
     def __check_imports(self):
         if self._ast_root:
@@ -38,4 +39,4 @@ class AbstractModule:
                         self.has_imports = True
                         break
             except Exception as e:
-                logging.error(e)
+                LOGGER.error(e)

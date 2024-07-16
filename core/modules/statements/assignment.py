@@ -1,8 +1,8 @@
-import logging
 import ast
 
 from core.modules.statements.base import Base
 from core.modules.annotation import Annotation
+from main import LOGGER
 
 
 class Assignment(Base):
@@ -56,7 +56,7 @@ class Assignment(Base):
                         self.recursion_class_call_scan(self.value)
                     )
                 except Exception as e:
-                    logging.error(e)
+                    LOGGER.error(e)
 
     def __parse(self):
         self.__annotation()
