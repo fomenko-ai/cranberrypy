@@ -1,7 +1,7 @@
 from typing import Tuple, List
 
 from core.converters.base import AbstractConverter
-from core.utils import write_json
+from core.utils.func import write_json
 
 
 class Exports2Diagrams(AbstractConverter):
@@ -20,7 +20,8 @@ class Exports2Diagrams(AbstractConverter):
                 "text": import_item,
                 "toArrow": None,
                 "fromArrow": "BackwardTriangle",
-                "isClass": is_class
+                "isClass": is_class,
+                "type": "inheritance"
 
             }
         elif link_types == 'is_call':
@@ -30,7 +31,8 @@ class Exports2Diagrams(AbstractConverter):
                 "text": import_item,
                 "toArrow": "StretchedDiamond",
                 "fromArrow": None,
-                "isClass": is_class
+                "isClass": is_class,
+                "type": "call"
             }
         else:
             return {
@@ -39,7 +41,8 @@ class Exports2Diagrams(AbstractConverter):
                 "text": import_item,
                 "toArrow": None,
                 "fromArrow": None,
-                "isClass": is_class
+                "isClass": is_class,
+                "type": "usage"
             }
 
     @staticmethod
