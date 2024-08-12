@@ -1,3 +1,6 @@
+import os
+import pickle
+
 from langchain.chains import RetrievalQA
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import JSONLoader
@@ -13,6 +16,23 @@ from langchain_experimental.chat_models.llm_wrapper import ChatWrapper
 from langchain_huggingface import HuggingFaceEmbeddings
 
 from core.utils.hf_model import download_hf_model
+
+
+JSON_FILE = "core/assistant/data.json"
+VECTORSTORE_FILE = "core/assistant/vectorstore.pkl"
+
+
+def save_vectorstore(vectors_data, filename=VECTORSTORE_FILE):
+    with open(filename, "wb") as f:
+        pickle.dump(vectors_data, f)
+
+
+def load_vectorstore(filename=VECTORSTORE_FILE):
+    if os.path.exists(filename):
+        with open(filename, "rb") as f:
+            return pickle.load(f)
+    return None
+
 
 template_messages = [
     SystemMessage(content=(
@@ -80,19 +100,23 @@ runnable_with_history = RunnableWithMessageHistory(
     history_messages_key="chat_history",
 )
 
-jq_schema = ".modules"
-loader = JSONLoader("core/assistant/data.json", jq_schema=jq_schema)
-documents = loader.load()
 
-text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=1500,
-    chunk_overlap=300
-)
-docs = text_splitter.split_documents(documents)
+vectorstore = load_vectorstore()
+if vectorstore is None:
+    jq_schema = ".modules"
+    loader = JSONLoader(JSON_FILE, jq_schema=jq_schema)
+    documents = loader.load()
 
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1500,
+        chunk_overlap=300
+    )
+    docs = text_splitter.split_documents(documents)
 
-embeddings = HuggingFaceEmbeddings()
-vectorstore = FAISS.from_documents(docs, embeddings)
+    embeddings = HuggingFaceEmbeddings()
+
+    vectorstore = FAISS.from_documents(docs, embeddings)
+    save_vectorstore(vectorstore)
 
 
 qa_chain = RetrievalQA.from_chain_type(
