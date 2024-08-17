@@ -15,6 +15,8 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_experimental.chat_models.llm_wrapper import ChatWrapper
 from langchain_huggingface import HuggingFaceEmbeddings
 
+from chat import LOGGER
+from chat import SYSTEM_MESSAGE
 from core.utils.hf_model import download_hf_model
 
 
@@ -23,25 +25,25 @@ VECTORSTORE_FILE = "core/assistant/vectorstore.pkl"
 
 
 def save_vectorstore(vectors_data, filename=VECTORSTORE_FILE):
+    LOGGER.info("Saving vectorstore.")
     with open(filename, "wb") as f:
         pickle.dump(vectors_data, f)
+    LOGGER.info("Vectorstore saved.")
 
 
 def load_vectorstore(filename=VECTORSTORE_FILE):
+    LOGGER.info("Loading vectorstore.")
     if os.path.exists(filename):
         with open(filename, "rb") as f:
-            return pickle.load(f)
+            vectors_data = pickle.load(f)
+            LOGGER.info("Vectorstore loaded.")
+            return vectors_data
+    LOGGER.info("No vectorstore found.")
     return None
 
 
 template_messages = [
-    SystemMessage(content=(
-        "You are a helpful assistant. "
-        "In your context memory there is data about Python project. "
-        "Project data contain information about modules: "
-        "code, imports, classes, dependencies, directory. "
-        "When answering questions, use information about module code first. "
-    )),
+    SystemMessage(content=SYSTEM_MESSAGE),
     MessagesPlaceholder(variable_name="chat_history"),
     HumanMessagePromptTemplate.from_template("{text}"),
 ]
@@ -77,6 +79,8 @@ model_path = download_hf_model(
     filename="*Q4_K_M.gguf"
 )
 
+LOGGER.info("HF model downloaded.")
+
 llm = LlamaCpp(
     temperature=0.1,
     model_path=model_path,
@@ -90,8 +94,9 @@ llm = LlamaCpp(
     top_k=40,
     verbose=False
 )
-
 model = Mistral(llm=llm)
+LOGGER.info("Initialised LlamaCpp.")
+
 runnable = prompt_template | model
 runnable_with_history = RunnableWithMessageHistory(
     runnable,
@@ -103,6 +108,8 @@ runnable_with_history = RunnableWithMessageHistory(
 
 vectorstore = load_vectorstore()
 if vectorstore is None:
+    LOGGER.info("No vectorstore data found, loading data for vectorstore.")
+
     jq_schema = ".modules"
     loader = JSONLoader(JSON_FILE, jq_schema=jq_schema)
     documents = loader.load()
@@ -122,3 +129,4 @@ if vectorstore is None:
 qa_chain = RetrievalQA.from_chain_type(
     llm=model, chain_type="stuff", retriever=vectorstore.as_retriever()
 )
+LOGGER.info("Created QA chain.")
