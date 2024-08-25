@@ -2,7 +2,6 @@ from typing import Optional, List, Any
 
 from langchain_community.llms.llamacpp import LlamaCpp
 from langchain_core.callbacks import CallbackManagerForLLMRun
-from langchain_experimental.chat_models.llm_wrapper import ChatWrapper
 
 
 class CustomLlamaCpp(LlamaCpp):
@@ -49,18 +48,3 @@ class CustomLlamaCpp(LlamaCpp):
             params = {**params, **kwargs}
             result = self.client(prompt=prompt, **params)
             return result["choices"][0]["text"]
-
-
-class Mistral(ChatWrapper):
-    @property
-    def _llm_type(self) -> str:
-        return "mistral"
-
-    sys_beg: str = "[INST] "
-    sys_end: str = "\n"
-    ai_n_beg: str = " "
-    ai_n_end: str = " </s>"
-    usr_n_beg: str = " [INST] "
-    usr_n_end: str = " [/INST]"
-    usr_0_beg: str = ""
-    usr_0_end: str = " [/INST]"
