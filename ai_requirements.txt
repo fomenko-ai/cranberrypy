@@ -1,0 +1,8 @@
+faiss-cpu==1.8.0.post1
+huggingface-hub==0.23.4
+jq==1.7.0
+langchain==0.2.9
+langchain-community==0.2.9
+langchain-core==0.2.22
+langchain-huggingface==0.0.3
+llama_cpp_python==0.2.79
