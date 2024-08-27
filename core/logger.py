@@ -14,8 +14,8 @@ class Logger(logging.Logger):
         self.name = name
         self.log_level = log_level
 
-    def setup_logger(self):
-        s_handler = logging.StreamHandler()
+    def setup_logger(self, stream=None):
+        s_handler = logging.StreamHandler(stream=stream)
         f_handler = logging.FileHandler(
             f"{self.config.get('logger', 'logs_path')}/"
             f"{datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}.log"

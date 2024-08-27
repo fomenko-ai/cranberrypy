@@ -10,3 +10,8 @@ def read_json(filename):
     with open(filename, 'r') as file:
         data = json.load(file)
     return data
+
+
+def read_file(filename) -> str:
+    with open(filename, 'r') as file:
+        return file.read()

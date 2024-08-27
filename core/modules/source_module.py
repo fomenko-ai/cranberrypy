@@ -2,6 +2,7 @@ import ast
 
 from core.modules.base import AbstractModule
 from core.modules.definitions.module_class import ModuleClass
+from core.utils.func import read_file
 from main import LOGGER
 
 
@@ -73,3 +74,7 @@ class SourceModule(AbstractModule):
     def select_import(self, module_name):
         if module_name in self._all_imports:
             self.imports[module_name] = self._all_imports[module_name]
+
+    @property
+    def code(self) -> str:
+        return read_file(self.file_path)

@@ -1,7 +1,7 @@
 from typing import Dict, List
 
 from core.converters.base import AbstractConverter
-from core.utils import write_json
+from core.utils.func import write_json
 
 
 class Imports2Exports(AbstractConverter):

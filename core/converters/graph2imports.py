@@ -3,7 +3,7 @@ from pydeps.depgraph import DepGraph
 from core.converters.base import AbstractConverter
 from core.modules.source_module import SourceModule
 from core.modules.import_module import ImportModule
-from core.utils import write_json
+from core.utils.func import write_json
 
 
 class Graph2Imports(AbstractConverter):
@@ -33,7 +33,9 @@ class Graph2Imports(AbstractConverter):
                             module.select_import(source.name)
             if module.imports:
                 self.data['modules'][module.name] = {
-                    "imports": module.imports, "classes": module.classes
+                    "imports": module.imports,
+                    "classes": module.classes,
+                    "code": module.code
                 }
                 self.data["dirnames"][module.name] = module.dirname
 
