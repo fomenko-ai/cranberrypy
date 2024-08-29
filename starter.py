@@ -1,7 +1,7 @@
-import subprocess
-
 from core.configuration.config import Config
 from core.logger import Logger
+from core.utils.script import Script
+
 
 CONFIG = Config('cranberrypy.ini')
 
@@ -12,7 +12,7 @@ LOGGER.setup_logger()
 DOCKERFILE_PATH = 'Dockerfile'
 
 
-def create_docker_files():
+def create_dockerfile():
     docker_file_content = f'''
     FROM python:{CONFIG.python_version}
     WORKDIR /app
@@ -30,69 +30,47 @@ def create_docker_files():
 
 
 def start():
-    copy_requirements_command = f"cp {CONFIG.requirements_path} ./temp/requirements.txt"
-    build_command = f"docker build -t temporary-image ."
-    run_command = (
-        "docker run --name temporary-container"
-        f" --mount type=bind,src={CONFIG.root_directory_path},dst={CONFIG.root_image_path}"
-        " --mount type=bind,src=./temp/,dst=/app/temp/ temporary-image"
+    script = Script(logger=LOGGER)
+    script.add(create_dockerfile)
+    script.add(
+        command=f"cp {CONFIG.requirements_path} ./temp/requirements.txt",
+        description="copy project requirements.txt"
     )
-    delete_container_command = "docker rm temporary-container"
-    delete_image_command = "docker rmi temporary-image"
-    delete_dockerfile_command = f"rm {DOCKERFILE_PATH}"
-    delete_requirements_command = "rm ./temp/requirements.txt"
-
-    try:
-        LOGGER.info("Copy project requirements file...")
-        subprocess.run(copy_requirements_command, shell=True, check=True)
-        LOGGER.info("Requirements file copied successfully")
-    except Exception as e:
-        LOGGER.error("Failed to copy requirements file", e)
-
-    try:
-        LOGGER.info("Building docker image...")
-        subprocess.run(build_command, shell=True, check=True)
-        LOGGER.info("Image build successful")
-    except Exception as e:
-        LOGGER.error("Failed to build image", e)
-        return
-
-    try:
-        LOGGER.info("Running docker image...")
-        subprocess.run(run_command, shell=True, check=True)
-        LOGGER.info("Image ran successfully")
-    except Exception as e:
-        LOGGER.error("Failed to run image", e)
-
-    try:
-        LOGGER.info("Deleting docker container...")
-        subprocess.run(delete_container_command, shell=True, check=True)
-        LOGGER.info("Container deleted successfully")
-    except Exception as e:
-        LOGGER.error("Failed to delete container", e)
-
-    try:
-        LOGGER.info("Deleting docker image...")
-        subprocess.run(delete_image_command, shell=True, check=True)
-        LOGGER.info("Image deleted successfully")
-    except Exception as e:
-        LOGGER.error("Failed to delete image", e)
-
-    try:
-        LOGGER.info("Deleting Dockerfile...")
-        subprocess.run(delete_dockerfile_command, shell=True, check=True)
-        LOGGER.info("Dockerfile deleted successfully")
-    except Exception as e:
-        LOGGER.error("Failed to delete dockerfile", e)
-
-    try:
-        LOGGER.info("Deleting project requirements file...")
-        subprocess.run(delete_requirements_command, shell=True, check=True)
-        LOGGER.info("Requirements file deleted successfully")
-    except Exception as e:
-        LOGGER.error("Failed to delete requirements file", e)
+    script.add(
+        command="docker build -t temporary-image .",
+        description="docker build image",
+    )
+    script.add(
+        command=(
+            "docker run --name temporary-container"
+            f" --mount type=bind,src={CONFIG.root_directory_path},dst={CONFIG.root_image_path}"
+            " --mount type=bind,src=./temp/,dst=/app/temp/ temporary-image"
+        ),
+        description="docker run container",
+        exception_break=False
+    )
+    script.add(
+        command="docker rm temporary-container",
+        description="docker remove container",
+        exception_break=False
+    )
+    script.add(
+        command="docker rmi temporary-image",
+        description="docker remove image",
+        exception_break=False
+    )
+    script.add(
+        command=f"rm {DOCKERFILE_PATH}",
+        description="remove Dockerfile",
+        exception_break=False
+    )
+    script.add(
+        command="rm ./temp/requirements.txt",
+        description="remove project requirements.txt",
+        exception_break=False
+    )
+    script.run()
 
 
 if __name__ == "__main__":
-    create_docker_files()
     start()
