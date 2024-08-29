@@ -57,4 +57,4 @@ class Imports2Exports(AbstractConverter):
             self.data['dirnames'] = modules['dirnames']
 
     def save(self):
-        write_json(self.data, f"{self.filename}_EXPORTS.json")
+        write_json(self.data, f"saved/{self.filename}_EXPORTS.json")

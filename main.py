@@ -3,7 +3,10 @@ from core.logger import Logger
 from core.project import Project
 
 
-CONFIG = Config('cranberrypy.ini')
+CONFIG = Config(
+    file_path='cranberrypy.ini',
+    in_docker_image=True  # False - If you run main.py manually
+)
 
 LOGGER = Logger(config=CONFIG)
 LOGGER.setup_logger()

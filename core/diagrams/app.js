@@ -22,7 +22,7 @@ function readJsonFile(filePath) {
     }
 }
 
-let diagramData = readJsonFile('./core/diagrams/data.json')
+let diagramData = readJsonFile('./temp/source/diagrams.json')
 
 console.log(diagramData)
 

@@ -20,8 +20,8 @@ from core.assistant.models import CustomLlamaCpp
 from core.assistant.func import download_hf_model
 
 
-JSON_FILE = "core/assistant/data.json"
-VECTORSTORE_FILE = "core/assistant/vectorstore.pkl"
+JSON_FILE = "./temp/source/assistant.json"
+VECTORSTORE_FILE = "./temp/source/vectorstore.pkl"
 
 
 class AI:
