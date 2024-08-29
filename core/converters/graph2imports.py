@@ -40,4 +40,4 @@ class Graph2Imports(AbstractConverter):
                 self.data["dirnames"][module.name] = module.dirname
 
     def save(self):
-        write_json(self.data, f"{self.filename}_IMPORTS.json")
+        write_json(self.data, f"saved/{self.filename}_IMPORTS.json")

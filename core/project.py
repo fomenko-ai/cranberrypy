@@ -7,7 +7,7 @@ class Project(Target):
     def __init__(self, config):
         super().__init__(config.project_path)
         self.path = config.project_path
-        self.excluded_folders = config.excluded_folders
+        self.excluded_paths = config.excluded_paths
         self.file_paths = None
 
         self.__file_scan()
@@ -25,7 +25,7 @@ class Project(Target):
         for root, dirs, files in os.walk(self.path):
             if stop_root in root or self.__check_cache_folder(root):
                 continue
-            if root != self.path and root in self.excluded_folders:
+            if root != self.path and root in self.excluded_paths:
                 stop_root = root
                 continue
             for file in files:

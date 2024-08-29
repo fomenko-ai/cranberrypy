@@ -242,8 +242,8 @@ class Exports2Diagrams(AbstractConverter):
         }
 
     def save(self):
-        write_json(self.data, f"{self.filename}_DIAGRAM.json")
+        write_json(self.data, f"saved/{self.filename}_DIAGRAM.json")
         write_json(
             self.data,
-            "core/diagrams/data.json"
+            "source/diagrams.json"
         )

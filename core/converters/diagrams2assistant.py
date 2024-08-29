@@ -53,8 +53,8 @@ class Diagrams2Assistant(AbstractConverter):
         self.__compose_for_assistant(import_data, links)
 
     def save(self):
-        write_json(self.data, f"{self.filename}_ASSISTANT.json")
+        write_json(self.data, f"saved/{self.filename}_ASSISTANT.json")
         write_json(
             self.data,
-            "core/assistant/data.json"
+            "source/assistant.json"
         )
