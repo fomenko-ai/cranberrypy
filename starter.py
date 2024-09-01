@@ -1,9 +1,9 @@
-from core.configuration.config import Config
+from core.configuration.starter import StarterConfig
 from core.logger import Logger
 from core.utils.script import Script
 
 
-CONFIG = Config('cranberrypy.ini')
+CONFIG = StarterConfig('cranberrypy.ini')
 
 LOGGER = Logger(config=CONFIG, name=__name__)
 LOGGER.setup_logger()

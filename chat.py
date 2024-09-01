@@ -1,7 +1,7 @@
-from core.configuration.config import Config
+from core.configuration.chat import ChatConfig
 from core.logger import Logger
 
-CONFIG = Config('cranberrypy.ini')
+CONFIG = ChatConfig('cranberrypy.ini')
 
 LOGGER = Logger(config=CONFIG, name=__name__)
 LOGGER.setup_logger()
