@@ -1,9 +1,9 @@
-from core.configuration.config import Config
+from core.configuration.main import MainConfig
 from core.logger import Logger
 from core.project import Project
 
 
-CONFIG = Config(
+CONFIG = MainConfig(
     file_path='cranberrypy.ini',
     in_docker_image=True  # False - If you run main.py manually
 )
