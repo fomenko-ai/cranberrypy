@@ -13,10 +13,10 @@ class Assignment(Base):
         self.annotation = None
         self.is_constant = False
 
-        self.__get_targets()
-        self.__parse()
+        self._get_targets()
+        self._parse()
 
-    def __get_targets(self):
+    def _get_targets(self):
         if isinstance(self.statement, ast.Assign) and\
            isinstance(self.statement.targets, list):
             self.targets = self.statement.targets
@@ -29,11 +29,11 @@ class Assignment(Base):
         else:
             self.targets = []
 
-    def __annotation(self):
+    def _annotation(self):
         if isinstance(self.statement, ast.AnnAssign):
             self.annotation = Annotation(self.statement.annotation).name
 
-    def __names(self):
+    def _names(self):
         if self.variable_names is None:
             self.variable_names = []
         if self.call_names is None:
@@ -58,9 +58,9 @@ class Assignment(Base):
                 except Exception as e:
                     LOGGER.error(e)
 
-    def __parse(self):
-        self.__annotation()
-        self.__names()
+    def _parse(self):
+        self._annotation()
+        self._names()
 
     def to_dict(self):
         return {"names": self.variable_names, "annotation": self.annotation}

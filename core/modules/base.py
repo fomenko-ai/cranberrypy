@@ -18,10 +18,10 @@ class AbstractModule:
         self._ast_root = None
         self.is_empty = True
 
-        self.__get_ast_root()
-        self.__check_imports()
+        self._get_ast_root()
+        self._check_imports()
 
-    def __get_ast_root(self):
+    def _get_ast_root(self):
         if self.file_path.endswith('.py'):
             try:
                 with open(self.file_path, "r") as file:
@@ -31,7 +31,7 @@ class AbstractModule:
             except FileNotFoundError:
                 LOGGER.error(f"File not found: {self.file_path}.")
 
-    def __check_imports(self):
+    def _check_imports(self):
         if self._ast_root:
             try:
                 for node in ast.walk(self._ast_root):

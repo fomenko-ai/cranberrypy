@@ -6,9 +6,9 @@ class ImportModule(AbstractModule):
         super().__init__(file_path)
         self.type = None
 
-        self.__get_type(file_path)
+        self._get_type(file_path)
 
-    def __get_type(self, file_path):
+    def _get_type(self, file_path):
         if 'site-packages' in file_path:
             self.type = 'third_party'
         elif ('usr' in file_path

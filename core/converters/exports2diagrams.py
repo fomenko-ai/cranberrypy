@@ -7,11 +7,11 @@ from core.utils.func import write_json
 class Exports2Diagrams(AbstractConverter):
 
     @staticmethod
-    def __cls_key(module_name: str, class_name: str) -> str:
+    def _cls_key(module_name: str, class_name: str) -> str:
         return '.'.join([module_name, class_name])
 
     @staticmethod
-    def __link_to_dict(link: Tuple[str, str, str, str, bool]) -> dict:
+    def _link_to_dict(link: Tuple[str, str, str, str, bool]) -> dict:
         _from, _to, import_item, link_types, is_class = link
         if link_types == 'is_inheritance':
             return {
@@ -46,14 +46,14 @@ class Exports2Diagrams(AbstractConverter):
             }
 
     @staticmethod
-    def __dividing_lines(module_name: str) -> Tuple[str, str]:
+    def _dividing_lines(module_name: str) -> Tuple[str, str]:
         letter_quantity = int(0.8 * len(module_name))
         line = '-' * letter_quantity
         double_line = '=' * letter_quantity
         return line, double_line
 
     @staticmethod
-    def __color(dirname: str):
+    def _color(dirname: str):
         if dirname == 'built_in':
             return 'yellow'
         elif dirname == 'third_party':
@@ -62,7 +62,7 @@ class Exports2Diagrams(AbstractConverter):
             return 'LightGreen'
 
     @staticmethod
-    def __visibility(value: str) -> str:
+    def _visibility(value: str) -> str:
         if value.startswith('__'):
             return '-'
         elif value.startswith('_'):
@@ -70,23 +70,23 @@ class Exports2Diagrams(AbstractConverter):
         else:
             return '+'
 
-    def __attributes(self, values: List[dict]) -> List[str]:
+    def _attributes(self, values: List[dict]) -> List[str]:
         attributes = []
         for attr in values:
             text = ''
             names = []
             for name in attr['names']:
-                names.append(f"{self.__visibility(name)} {name}")
+                names.append(f"{self._visibility(name)} {name}")
             text += ', '.join(names)
             if attr['annotation']:
                 text += f" : ({attr['annotation']})"
             attributes.append(text)
         return attributes
 
-    def __methods(self, values: List[dict]) -> List[str]:
+    def _methods(self, values: List[dict]) -> List[str]:
         methods = []
         for method in values:
-            text = f"{self.__visibility(method['name'])} {method['name']}"
+            text = f"{self._visibility(method['name'])} {method['name']}"
             arguments = []
             if method['arguments']:
                 for arg in method['arguments']:
@@ -100,48 +100,48 @@ class Exports2Diagrams(AbstractConverter):
             methods.append(text)
         return methods
 
-    def __cls_structure(self, structure: dict) -> list:
+    def _cls_structure(self, structure: dict) -> list:
         info = []
         for key, values in structure.items():
             if values:
                 info.append(f'\n{key}')
                 if key == 'attributes':
-                    info.extend(self.__attributes(values))
+                    info.extend(self._attributes(values))
                 elif key == 'methods':
-                    info.extend(self.__methods(values))
+                    info.extend(self._methods(values))
                 else:
                     for value in values:
                         info.append(f'. {value}')
         return info
 
-    def __full_info(
+    def _full_info(
         self, module_name: str, classes: dict, class_name: str = None
     ) -> str:
         info = [f'{module_name}']
 
-        line, double_line = self.__dividing_lines(module_name)
+        line, double_line = self._dividing_lines(module_name)
 
         if module_name in classes:
             info.append(f'\n{double_line}')
             if class_name is None:
                 for _class, structure in classes[module_name].items():
                     info.append(f'\n{_class}')
-                    info.extend(self.__cls_structure(structure))
+                    info.extend(self._cls_structure(structure))
                     info.append(f'\n{line}')
             else:
                 info.append(f'\n{class_name}')
                 if class_name in classes[module_name]:
                     info.extend(
-                        self.__cls_structure(classes[module_name][class_name])
+                        self._cls_structure(classes[module_name][class_name])
                     )
         return '\n'.join(info)
 
-    def __short_info(
+    def _short_info(
         self, module_name: str, classes: dict, class_name: str = None
     ) -> str:
         info = [f'{module_name}']
 
-        line, double_line = self.__dividing_lines(module_name)
+        line, double_line = self._dividing_lines(module_name)
 
         if module_name in classes:
             info.append(f'\n{double_line}')
@@ -154,7 +154,7 @@ class Exports2Diagrams(AbstractConverter):
 
         return '\n'.join(info)
 
-    def __node_params(self, nodes: set, dirnames: dict, classes: dict):
+    def _node_params(self, nodes: set, dirnames: dict, classes: dict):
         node_params = []
         modules = set()
         groups = set()
@@ -162,11 +162,11 @@ class Exports2Diagrams(AbstractConverter):
         for module, cls in nodes:
             if cls is not None:
                 params = {
-                    "key": self.__cls_key(module, cls),
-                    "color": self.__color(dirnames[module]),
+                    "key": self._cls_key(module, cls),
+                    "color": self._color(dirnames[module]),
                     "text": cls,
-                    "shortInfo": self.__short_info(module, classes, cls),
-                    "fullInfo": self.__full_info(module, classes, cls),
+                    "shortInfo": self._short_info(module, classes, cls),
+                    "fullInfo": self._full_info(module, classes, cls),
                     "isClass": True,
                     "module": module
                 }
@@ -178,10 +178,10 @@ class Exports2Diagrams(AbstractConverter):
         for module in modules:
             params = {
                 "key": module,
-                "color": self.__color(dirnames[module]),
+                "color": self._color(dirnames[module]),
                 "text": module,
-                "shortInfo": self.__short_info(module, classes),
-                "fullInfo": self.__full_info(module, classes),
+                "shortInfo": self._short_info(module, classes),
+                "fullInfo": self._full_info(module, classes),
                 "isModule": True
             }
             if module in dirnames:
@@ -225,25 +225,27 @@ class Exports2Diagrams(AbstractConverter):
                             )
                             links.add(
                                 (
-                                    self.__cls_key(_from, import_item),
-                                    self.__cls_key(_to, cls),
+                                    self._cls_key(_from, import_item),
+                                    self._cls_key(_to, cls),
                                     import_item,
                                     link_types,
                                     True
                                 )
                             )
         self.data = {
-            "nodes": self.__node_params(
+            "nodes": self._node_params(
                 nodes, modules['dirnames'], modules['classes']
             ),
             "links": [
-                self.__link_to_dict(link) for link in links
+                self._link_to_dict(link) for link in links
             ]
         }
 
     def save(self):
-        write_json(self.data, f"saved/{self.filename}_DIAGRAM.json")
+        write_json(
+            self.data, f"./temp/saved/{self.filename}_DIAGRAM.json"
+        )
         write_json(
             self.data,
-            "source/diagrams.json"
+            "./temp/source/diagrams.json"
         )

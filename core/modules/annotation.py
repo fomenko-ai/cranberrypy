@@ -6,9 +6,9 @@ class Annotation:
         self.annotation = annotation
         self.name = None
 
-        self.__parse()
+        self._parse()
 
-    def __parse(self):
+    def _parse(self):
         if self.annotation is not None:
             if isinstance(self.annotation, ast.Name) and\
                isinstance(self.annotation.id, str):

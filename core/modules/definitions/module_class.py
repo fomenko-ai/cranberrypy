@@ -16,9 +16,9 @@ class ModuleClass(Base):
         self.inheritance = None
         self.calls = None
 
-        self.__parse()
+        self._parse()
 
-    def __parse(self):
+    def _parse(self):
         self.attributes = []
         self.methods = []
         self.inheritance = []

@@ -5,7 +5,7 @@ class Base:
         self.body = definition.body
         self.name = definition.name
 
-    def __parse(self):
+    def _parse(self):
         raise NotImplementedError
 
     def to_dict(self):

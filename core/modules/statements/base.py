@@ -9,7 +9,7 @@ class Base:
         self.has_call = False
         self.call_names = None
 
-    def __parse(self):
+    def _parse(self):
         raise NotImplementedError
 
     def recursion_class_call_scan(self, value, count=0):

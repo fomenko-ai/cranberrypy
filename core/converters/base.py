@@ -1,5 +1,6 @@
 class AbstractConverter:
     def __init__(self, config):
+        self.config = config
         self.filename = config.base_filename
         self.data = None
 

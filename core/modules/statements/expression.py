@@ -7,9 +7,9 @@ from main import LOGGER
 class Expression(Base):
     def __init__(self, expr: ast.Expr):
         super().__init__(expr)
-        self.__parse()
+        self._parse()
 
-    def __parse(self):
+    def _parse(self):
         if self.call_names is None:
             self.call_names = []
 

@@ -7,7 +7,7 @@ from core.utils.func import write_json
 class Imports2Exports(AbstractConverter):
 
     @staticmethod
-    def __get_dependency_type(
+    def _get_dependency_type(
         export_value: str,
         structure: Dict[str, List]
     ) -> str:
@@ -17,7 +17,7 @@ class Imports2Exports(AbstractConverter):
             return 'is_call'
         return 'is_undefined'
 
-    def __get_exports(
+    def _get_exports(
         self,
         export_value: str,
         module_name: str,
@@ -29,7 +29,7 @@ class Imports2Exports(AbstractConverter):
                 (
                     module_name,
                     cls,
-                    self.__get_dependency_type(export_value, structure)
+                    self._get_dependency_type(export_value, structure)
                 )
             )
         return exports
@@ -51,10 +51,13 @@ class Imports2Exports(AbstractConverter):
                         if value not in exports:
                             exports[value] = []
                         exports[value].extend(
-                            self.__get_exports(value, module_name, classes)
+                            self._get_exports(value, module_name, classes)
                         )
                 self.data['classes'][module_name] = classes
             self.data['dirnames'] = modules['dirnames']
 
     def save(self):
-        write_json(self.data, f"saved/{self.filename}_EXPORTS.json")
+        write_json(
+            self.data,
+            f"./temp/saved/{self.filename}_EXPORTS.json"
+        )
