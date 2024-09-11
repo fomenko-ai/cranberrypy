@@ -9,9 +9,9 @@ class Argument:
         self.name = None
         self.annotation = None
 
-        self.__parse()
+        self._parse()
 
-    def __parse(self):
+    def _parse(self):
         if self.arg.arg is not None and\
            isinstance(self.arg.arg, str):
             self.name = self.arg.arg

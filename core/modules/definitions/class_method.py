@@ -19,9 +19,9 @@ class ClassMethod(Base):
         self.assignments = None
         self.calls = None
 
-        self.__parse()
+        self._parse()
 
-    def __arguments(self):
+    def _arguments(self):
         if self.arguments is None:
             self.arguments = []
 
@@ -32,18 +32,18 @@ class ClassMethod(Base):
                     if argument.name not in STOP_LIST:
                         self.arguments.append(argument.to_dict())
 
-    def __returns(self):
+    def _returns(self):
         if self.definition.returns is not None:
             self.returns = Annotation(self.definition.returns).name
 
-    def __add_calls(self, call_names: list):
+    def _add_calls(self, call_names: list):
         if self.calls is None:
             self.calls = set()
         for name in call_names:
             if name not in STOP_LIST:
                 self.calls.add(name)
 
-    def __body(self):
+    def _body(self):
         if self.assignments is None:
             self.assignments = []
         if self.calls is None:
@@ -54,15 +54,15 @@ class ClassMethod(Base):
                 assignment = Assignment(statement)
                 self.assignments.append(assignment.to_dict())
                 if assignment.has_call:
-                    self.__add_calls(assignment.call_names)
+                    self._add_calls(assignment.call_names)
             elif isinstance(statement, ast.Expr):
                 expression = Expression(statement)
-                self.__add_calls(expression.call_names)
+                self._add_calls(expression.call_names)
 
-    def __parse(self):
-        self.__arguments()
-        self.__returns()
-        self.__body()
+    def _parse(self):
+        self._arguments()
+        self._returns()
+        self._body()
 
     def to_dict(self):
         return {

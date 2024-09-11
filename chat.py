@@ -7,26 +7,16 @@ LOGGER = Logger(config=CONFIG, name=__name__)
 LOGGER.setup_logger()
 
 
-# Contextualize question
-contextualize_q_system_prompt = """Given a chat history and the latest user question \
-which might reference context in the chat history, formulate a standalone question \
-which can be understood without the chat history. Do NOT answer the question, \
-just reformulate it if needed and otherwise return it as is."""
-
-# Answer question
-qa_system_prompt = """You are an assistant for question-answering tasks. \
-Use the following pieces of retrieved context to answer the question. \
-If you don't know the answer, just say that you don't know. \
-Use three sentences maximum and keep the answer concise.\
-
-{context}"""
+SYSTEM_PROMPT = """You are a helpful assistant, you will use the provided context to answer user question.
+Read the given context before answering questions and think step by step. If you can`t answer a user question based on
+the provided context, inform the user. Do not use any other information for answering user."""
 
 
 def run_chat():
     from core.assistant.ai import AI
 
-    ai = AI()
-    ai.chat()
+    ai = AI(config=CONFIG)
+    ai.generate_documentation()
 
 
 if __name__ == "__main__":

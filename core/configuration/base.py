@@ -6,6 +6,7 @@ class BaseConfig:
         self.file_path = file_path
         self.config = configparser.ConfigParser(interpolation=None)
         self.config.read(file_path)
+        self.project_path = self.config.get('main', 'project_path')
 
     @property
     def sections(self):
