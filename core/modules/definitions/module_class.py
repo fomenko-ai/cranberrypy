@@ -34,7 +34,7 @@ class ModuleClass(Base):
                 if isinstance(_def, (ast.Assign, ast.AnnAssign)):
                     assignment = Assignment(_def)
                     self.attributes.append(assignment.to_dict())
-                elif isinstance(_def, ast.FunctionDef):
+                elif isinstance(_def, (ast.FunctionDef, ast.AsyncFunctionDef)):
                     method = ClassMethod(_def)
                     if _def.name == '__init__':
                         if method.assignments:

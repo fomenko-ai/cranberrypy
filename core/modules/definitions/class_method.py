@@ -1,4 +1,5 @@
 import ast
+from typing import Union
 
 from core.modules.annotation import Annotation
 from core.modules.argument import Argument
@@ -12,7 +13,10 @@ STOP_LIST = [None, 'self', 'cls', 'args', 'kwargs']
 
 class ClassMethod(Base):
 
-    def __init__(self, definition: ast.FunctionDef):
+    def __init__(
+        self,
+        definition: Union[ast.FunctionDef, ast.AsyncFunctionDef]
+    ):
         super().__init__(definition)
         self.arguments = None
         self.returns = None
