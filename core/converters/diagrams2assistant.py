@@ -21,7 +21,7 @@ class Diagrams2Assistant(AbstractConverter):
         for link in links:
             if link['isClass'] is True:
                 continue
-            key = (link['from'], link['to'], link['text'])
+            key = (link['from'], link['to'], link['text'], link['type'])
             value = {
                 'type': link['type'],
                 'text': self._get_link_text(link)
