@@ -18,7 +18,7 @@ class MainConfig(BaseConfig):
             self._convert_paths()
 
         self.target = Target(self.project_path)
-        self.base_filename = self.target.modpath.replace('.', '_')
+        self.save_dir = self.target.modpath.replace('.', '_')
 
     def _get_excluded_paths(self):
         paths_or_dirs_list = self.config.get(

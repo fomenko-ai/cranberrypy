@@ -78,21 +78,28 @@ class Diagrams2Assistant(AbstractConverter):
         self._compose_for_assistant(import_data, links)
 
     def _get_source_key(self):
+        return self.save_dir
+
+    def _get_assistant_key(self):
         return (
-            f"{self.filename}"
+            f"{self.save_dir}"
             f"_{datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}"
         )
 
     def save(self):
         write_json(
             self.data,
-            f"./temp/saved/{self.filename}_ASSISTANT.json"
-        )
-        write_json(
-            self.data,
-            "./temp/source/assistant.json"
+            f"./temp/saved/{self.save_dir}/assistant.json"
         )
         write_file(
             self._get_source_key(),
             "./temp/source/source_key"
+        )
+        write_file(
+            self._get_source_key(),
+            f"./temp/saved/{self.save_dir}/source_key"
+        )
+        write_file(
+            self._get_assistant_key(),
+            f"./temp/saved/{self.save_dir}/assistant_key"
         )

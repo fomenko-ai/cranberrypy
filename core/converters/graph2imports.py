@@ -42,5 +42,5 @@ class Graph2Imports(AbstractConverter):
     def save(self):
         write_json(
             self.data,
-            f"./temp/saved/{self.filename}_IMPORTS.json"
+            f"./temp/saved/{self.save_dir}/imports.json"
         )

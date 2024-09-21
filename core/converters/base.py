@@ -1,7 +1,10 @@
+from core.configuration.main import MainConfig
+
+
 class AbstractConverter:
-    def __init__(self, config):
+    def __init__(self, config: MainConfig):
         self.config = config
-        self.filename = config.base_filename
+        self.save_dir = config.save_dir
         self.data = None
 
     def add(self, *args, **kwargs):

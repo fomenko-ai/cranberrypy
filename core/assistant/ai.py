@@ -1,27 +1,33 @@
 import os
 from typing import List
 
-from langchain.chains.question_answering import load_qa_chain
+from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.text_splitter import Language, RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import JSONLoader
 from langchain_community.document_loaders.generic import GenericLoader
 from langchain_community.document_loaders.parsers.language.language_parser import LanguageParser
 from langchain_community.vectorstores import DeepLake
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_community.llms import LlamaCpp
 from langchain_core.prompts import PromptTemplate
 from langchain.callbacks.manager import CallbackManager
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 
+from core.configuration.chat import ChatConfig
 from chat import LOGGER
 from chat import SYSTEM_PROMPT
 from core.assistant.func import download_hf_model
 from core.utils.func import write_file, read_file, read_json
 
 
-JSON_FILE = "./temp/source/assistant.json"
-VECTORSTORE_DIR = "./temp/source/vectorstore/"
-VECTORSTORE_KEY = VECTORSTORE_DIR + "vectorstore_key"
+SOURCE_PATH = "./temp/saved/{source_key}/"
+
+ASSISTANT_JSON_PATH = SOURCE_PATH + "assistant.json"
+ASSISTANT_KEY_PATH = SOURCE_PATH + "assistant_key"
+
+VECTORSTORE_DIR_PATH = SOURCE_PATH + "vectorstore/"
+VECTORSTORE_KEY_PATH = VECTORSTORE_DIR_PATH + "vectorstore_key"
 
 B_INST, E_INST = "[INST]", "[/INST]"
 B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
@@ -32,23 +38,71 @@ User: {query}"""
 
 
 class AI:
-    def __init__(self, config):
+    def __init__(self, config: ChatConfig):
         self.config = config
+        self.source_key = None
         self.module_dict = None
         self.vectorstore = None
         self.qa_chain = None
 
+        self._load_source_key()
         self._load_module_dict()
         self._create_qa_chain()
 
+    def _init_model(self):
+        callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
+
+        if self.config.google_api_key:
+            model = "gemini-1.5-pro"
+            llm = ChatGoogleGenerativeAI(
+                google_api_key=self.config.google_api_key,
+                model=model,
+                temperature=0,
+                max_tokens=None,
+                timeout=None,
+                max_retries=2,
+                callbacks=callback_manager
+            )
+        else:
+            model = "MaziyarPanahi/Mistral-7B-Instruct-v0.3-GGUF"
+            model_path = download_hf_model(
+                repo_id=model,
+                filename="*Q4_K_M.gguf"
+            )
+            LOGGER.info("HF model downloaded.")
+
+            llm = LlamaCpp(
+                model_path=model_path,
+                n_ctx=8192,
+                max_tokens=8000,
+                n_gpu_layers=-1,
+                n_batch=1024,
+                n_threads=8,
+                repeat_penalty=1.1,
+                top_p=0.95,
+                top_k=40,
+                f16_kv=True,
+                callback_manager=callback_manager,
+                verbose=False
+            )
+        LOGGER.info(f"Initialised model: {model}")
+        return llm
+
+    def _load_source_key(self):
+        self.source_key = read_file("./temp/source/source_key")
+        LOGGER.info("Source key loaded.")
+
     def _load_module_dict(self):
-        data = read_json(JSON_FILE)
+        data = read_json(
+            ASSISTANT_JSON_PATH.format(source_key=self.source_key)
+        )
         self.module_dict = data['module_dict']
         LOGGER.info("Module dictionary loaded.")
 
-    @staticmethod
-    def _check_key(key1):
-        key2 = read_file(VECTORSTORE_KEY)
+    def _check_key(self, key1):
+        key2 = read_file(
+            VECTORSTORE_KEY_PATH.format(source_key=self.source_key)
+        )
         return key1 == key2
 
     def _python_code(self):
@@ -76,7 +130,7 @@ class AI:
     def _module_dependencies(self):
         jq_schema = ".dependencies[]"
         loader = JSONLoader(
-            JSON_FILE,
+            ASSISTANT_JSON_PATH.format(source_key=self.source_key),
             jq_schema=jq_schema,
             content_key=".content",
             is_content_key_jq_parsable=True,
@@ -92,28 +146,47 @@ class AI:
 
     def _load_vectorstore(self):
         self.vectorstore = None
-        source_key = read_file("./temp/source/source_key")
         embedding = HuggingFaceEmbeddings()
 
-        if os.path.exists(VECTORSTORE_KEY):
-            if self._check_key(source_key):
+        assistant_key = read_file(
+            ASSISTANT_KEY_PATH.format(source_key=self.source_key)
+        )
+
+        if os.path.exists(
+            VECTORSTORE_KEY_PATH.format(source_key=self.source_key)
+        ):
+            if self._check_key(assistant_key):
                 self.vectorstore = DeepLake(
-                    dataset_path=VECTORSTORE_DIR,
+                    dataset_path=VECTORSTORE_DIR_PATH.format(
+                        source_key=self.source_key
+                    ),
                     embedding=embedding,
                     read_only=True,
                     verbose=False
                 )
                 LOGGER.info("Vectorstore loaded.")
             else:
-                DeepLake.force_delete_by_path(VECTORSTORE_DIR)
+                LOGGER.info(
+                    "Outdated vectorstore data found."
+                )
+                DeepLake.force_delete_by_path(
+                    VECTORSTORE_DIR_PATH.format(source_key=self.source_key)
+                )
+                LOGGER.info("Vectorstore deleted.")
+        else:
+            LOGGER.info(
+                "No vectorstore data found."
+            )
 
         if self.vectorstore is None:
             LOGGER.info(
-                "No vectorstore data found, creating vectorstore."
+                "Creating vectorstore..."
             )
 
             self.vectorstore = DeepLake(
-                dataset_path=VECTORSTORE_DIR,
+                dataset_path=VECTORSTORE_DIR_PATH.format(
+                    source_key=self.source_key
+                ),
                 embedding=embedding,
                 verbose=True
             )
@@ -122,8 +195,10 @@ class AI:
             docs.extend(self._python_code())
             docs.extend(self._module_dependencies())
             self.vectorstore.add_documents(docs)
-            write_file(source_key, VECTORSTORE_KEY)
-
+            write_file(
+                assistant_key,
+                VECTORSTORE_KEY_PATH.format(source_key=self.source_key)
+            )
             LOGGER.info("Vectorstore saved.")
 
     @staticmethod
@@ -133,34 +208,15 @@ class AI:
         return prompt_template
 
     def _create_qa_chain(self):
-        model_path = download_hf_model(
-            repo_id="MaziyarPanahi/Mistral-7B-Instruct-v0.3-GGUF",
-            filename="*Q4_K_M.gguf"
-        )
-        LOGGER.info("HF model downloaded.")
-
-        callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
-        llm = LlamaCpp(
-            model_path=model_path,
-            n_ctx=8192,
-            max_tokens=8000,
-            n_gpu_layers=1,
-            n_batch=512,
-            f16_kv=True,
-            callback_manager=callback_manager,
-            verbose=False
-        )
-        LOGGER.info("Initialised model.")
-
         self._load_vectorstore()
-
         template = self._prompt_format()
         qa_chain_prompt = PromptTemplate(
             input_variable=["context", "query"],
             template=template
         )
-        self.qa_chain = load_qa_chain(
-            llm, chain_type="stuff", prompt=qa_chain_prompt
+        self.qa_chain = create_stuff_documents_chain(
+            llm=self._init_model(),
+            prompt=qa_chain_prompt
         )
         LOGGER.info("Created QA-chain.")
 
@@ -181,10 +237,9 @@ class AI:
     def _invoke(self, input_documents, query):
         self.qa_chain.invoke(
             {
-                'input_documents': input_documents,
+                'context': input_documents,
                 'query': query
-            },
-            return_only_outputs=True
+            }
         )
 
     def chat(self):

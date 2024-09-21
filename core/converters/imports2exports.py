@@ -59,5 +59,5 @@ class Imports2Exports(AbstractConverter):
     def save(self):
         write_json(
             self.data,
-            f"./temp/saved/{self.filename}_EXPORTS.json"
+            f"./temp/saved/{self.save_dir}/exports.json"
         )
