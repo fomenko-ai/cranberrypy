@@ -19,15 +19,8 @@ from chat import LOGGER
 from chat import SYSTEM_PROMPT
 from core.assistant.func import download_hf_model
 from core.utils.func import write_file, read_file, read_json
+from core.utils.path_switcher import PathSwitcher
 
-
-SOURCE_PATH = "./temp/saved/{source_key}/"
-
-ASSISTANT_JSON_PATH = SOURCE_PATH + "assistant.json"
-ASSISTANT_KEY_PATH = SOURCE_PATH + "assistant_key"
-
-VECTORSTORE_DIR_PATH = SOURCE_PATH + "vectorstore/"
-VECTORSTORE_KEY_PATH = VECTORSTORE_DIR_PATH + "vectorstore_key"
 
 B_INST, E_INST = "[INST]", "[/INST]"
 B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
@@ -40,14 +33,120 @@ User: {query}"""
 class AI:
     def __init__(self, config: ChatConfig):
         self.config = config
-        self.source_key = None
-        self.module_dict = None
-        self.vectorstore = None
-        self.qa_chain = None
+        self._path_switcher = None
+        self._module_dict = None
+        self._vectorstore = None
+        self._qa_chain = None
 
         self._load_source_key()
         self._load_module_dict()
         self._create_qa_chain()
+
+    def _load_source_key(self):
+        source_key = read_file("./temp/source/source_key")
+        self._path_switcher = PathSwitcher(source_key)
+        LOGGER.info("Source key loaded.")
+
+    def _load_module_dict(self):
+        data = read_json(self._path_switcher.assistant_json)
+        self._module_dict = data['module_dict']
+        LOGGER.info("Module dictionary loaded.")
+
+    def _check_key(self, key1):
+        key2 = read_file(self._path_switcher.vectorstore_key)
+        return key1 == key2
+
+    def _python_code(self):
+        loader = GenericLoader.from_filesystem(
+            self.config.project_path,
+            glob="**/*",
+            suffixes=[".py"],
+            parser=LanguageParser("python")
+        )
+        documents = loader.load()
+        python_splitter = RecursiveCharacterTextSplitter.from_language(
+            language=Language.PYTHON, chunk_size=2000, chunk_overlap=200
+        )
+        docs = python_splitter.split_documents(documents)
+        for doc in docs:
+            doc.metadata["content_type"] = 'code'
+        return docs
+
+    @staticmethod
+    def _dependency_metadata_func(source_dict, doc_dict):
+        for key, value in source_dict["metadata"].items():
+            doc_dict[key] = value
+        return doc_dict
+
+    def _module_dependencies(self):
+        jq_schema = ".dependencies[]"
+        loader = JSONLoader(
+            self._path_switcher.assistant_json,
+            jq_schema=jq_schema,
+            content_key=".content",
+            is_content_key_jq_parsable=True,
+            metadata_func=self._dependency_metadata_func,
+            text_content=False
+        )
+        documents = loader.load()
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1500,
+            chunk_overlap=300
+        )
+        return text_splitter.split_documents(documents)
+
+    def _load_vectorstore(self):
+        self._vectorstore = None
+        embedding = HuggingFaceEmbeddings()
+        assistant_key = read_file(self._path_switcher.assistant_key)
+        if os.path.exists(self._path_switcher.vectorstore_key):
+            if self._check_key(assistant_key):
+                self._vectorstore = DeepLake(
+                    dataset_path=self._path_switcher.vectorstore_dir,
+                    embedding=embedding,
+                    read_only=True,
+                    verbose=False
+                )
+                LOGGER.info("Vectorstore loaded.")
+            else:
+                LOGGER.info(
+                    "Outdated vectorstore data found."
+                )
+                DeepLake.force_delete_by_path(
+                    self._path_switcher.vectorstore_dir
+                )
+                LOGGER.info("Vectorstore deleted.")
+        else:
+            LOGGER.info(
+                "No vectorstore data found."
+            )
+
+        if self._vectorstore is None:
+            LOGGER.info(
+                "Creating vectorstore..."
+            )
+
+            self._vectorstore = DeepLake(
+                dataset_path=self._path_switcher.vectorstore_dir,
+                embedding=embedding,
+                verbose=True
+            )
+
+            docs = []
+            docs.extend(self._python_code())
+            docs.extend(self._module_dependencies())
+            self._vectorstore.add_documents(docs)
+            write_file(
+                assistant_key,
+                self._path_switcher.vectorstore_key
+            )
+            LOGGER.info("Vectorstore saved.")
+
+    @staticmethod
+    def _prompt_format():
+        system_prompt = B_SYS + SYSTEM_PROMPT + E_SYS
+        prompt_template = B_INST + system_prompt + INSTRUCTION + E_INST
+        return prompt_template
 
     def _init_model(self):
         callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
@@ -88,124 +187,6 @@ class AI:
         LOGGER.info(f"Initialised model: {model}")
         return llm
 
-    def _load_source_key(self):
-        self.source_key = read_file("./temp/source/source_key")
-        LOGGER.info("Source key loaded.")
-
-    def _load_module_dict(self):
-        data = read_json(
-            ASSISTANT_JSON_PATH.format(source_key=self.source_key)
-        )
-        self.module_dict = data['module_dict']
-        LOGGER.info("Module dictionary loaded.")
-
-    def _check_key(self, key1):
-        key2 = read_file(
-            VECTORSTORE_KEY_PATH.format(source_key=self.source_key)
-        )
-        return key1 == key2
-
-    def _python_code(self):
-        loader = GenericLoader.from_filesystem(
-            self.config.project_path,
-            glob="**/*",
-            suffixes=[".py"],
-            parser=LanguageParser("python")
-        )
-        documents = loader.load()
-        python_splitter = RecursiveCharacterTextSplitter.from_language(
-            language=Language.PYTHON, chunk_size=2000, chunk_overlap=200
-        )
-        docs = python_splitter.split_documents(documents)
-        for doc in docs:
-            doc.metadata["content_type"] = 'code'
-        return docs
-
-    @staticmethod
-    def _dependency_metadata_func(source_dict, doc_dict):
-        for key, value in source_dict["metadata"].items():
-            doc_dict[key] = value
-        return doc_dict
-
-    def _module_dependencies(self):
-        jq_schema = ".dependencies[]"
-        loader = JSONLoader(
-            ASSISTANT_JSON_PATH.format(source_key=self.source_key),
-            jq_schema=jq_schema,
-            content_key=".content",
-            is_content_key_jq_parsable=True,
-            metadata_func=self._dependency_metadata_func,
-            text_content=False
-        )
-        documents = loader.load()
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1500,
-            chunk_overlap=300
-        )
-        return text_splitter.split_documents(documents)
-
-    def _load_vectorstore(self):
-        self.vectorstore = None
-        embedding = HuggingFaceEmbeddings()
-
-        assistant_key = read_file(
-            ASSISTANT_KEY_PATH.format(source_key=self.source_key)
-        )
-
-        if os.path.exists(
-            VECTORSTORE_KEY_PATH.format(source_key=self.source_key)
-        ):
-            if self._check_key(assistant_key):
-                self.vectorstore = DeepLake(
-                    dataset_path=VECTORSTORE_DIR_PATH.format(
-                        source_key=self.source_key
-                    ),
-                    embedding=embedding,
-                    read_only=True,
-                    verbose=False
-                )
-                LOGGER.info("Vectorstore loaded.")
-            else:
-                LOGGER.info(
-                    "Outdated vectorstore data found."
-                )
-                DeepLake.force_delete_by_path(
-                    VECTORSTORE_DIR_PATH.format(source_key=self.source_key)
-                )
-                LOGGER.info("Vectorstore deleted.")
-        else:
-            LOGGER.info(
-                "No vectorstore data found."
-            )
-
-        if self.vectorstore is None:
-            LOGGER.info(
-                "Creating vectorstore..."
-            )
-
-            self.vectorstore = DeepLake(
-                dataset_path=VECTORSTORE_DIR_PATH.format(
-                    source_key=self.source_key
-                ),
-                embedding=embedding,
-                verbose=True
-            )
-
-            docs = []
-            docs.extend(self._python_code())
-            docs.extend(self._module_dependencies())
-            self.vectorstore.add_documents(docs)
-            write_file(
-                assistant_key,
-                VECTORSTORE_KEY_PATH.format(source_key=self.source_key)
-            )
-            LOGGER.info("Vectorstore saved.")
-
-    @staticmethod
-    def _prompt_format():
-        system_prompt = B_SYS + SYSTEM_PROMPT + E_SYS
-        prompt_template = B_INST + system_prompt + INSTRUCTION + E_INST
-        return prompt_template
 
     def _create_qa_chain(self):
         self._load_vectorstore()
@@ -214,28 +195,28 @@ class AI:
             input_variable=["context", "query"],
             template=template
         )
-        self.qa_chain = create_stuff_documents_chain(
+        self._qa_chain = create_stuff_documents_chain(
             llm=self._init_model(),
             prompt=qa_chain_prompt
         )
         LOGGER.info("Created QA-chain.")
 
     def _get_documents_by_query(self, query: str, k: int = 20) -> list:
-        return self.vectorstore.similarity_search(query=query, k=k)
+        return self._vectorstore.similarity_search(query=query, k=k)
 
     def _get_documents_by_module_path(
         self,
         module_path: str,
         k: int = 1000
     ) -> list:
-        return self.vectorstore.similarity_search(
+        return self._vectorstore.similarity_search(
             query=' ',
             k=k,
             filter={"metadata":  {'source': module_path}}
         )
 
     def _invoke(self, input_documents, query):
-        self.qa_chain.invoke(
+        self._qa_chain.invoke(
             {
                 'context': input_documents,
                 'query': query
@@ -260,7 +241,7 @@ class AI:
             LOGGER.info("Response returned.")
 
     def _get_module(self, module_path: str) -> dict:
-        module = self.module_dict.get(module_path)
+        module = self._module_dict.get(module_path)
         if module is None:
             raise Exception(f"No module named '{module_path}'.")
         else:
@@ -351,7 +332,7 @@ class AI:
             print(separator)
             LOGGER.info("Query received.\n")
             module = self._get_module(module_path)
-            docs = self.vectorstore.similarity_search(
+            docs = self._vectorstore.similarity_search(
                 query=' ',
                 k=1000,
                 filter={"metadata":  {'source': module_path}}
