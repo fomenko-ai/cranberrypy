@@ -1,33 +1,18 @@
 import os
 from typing import List
 
-from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.text_splitter import Language, RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import JSONLoader
 from langchain_community.document_loaders.generic import GenericLoader
 from langchain_community.document_loaders.parsers.language.language_parser import LanguageParser
 from langchain_community.vectorstores import DeepLake
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_community.llms import LlamaCpp
-from langchain_core.prompts import PromptTemplate
-from langchain.callbacks.manager import CallbackManager
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 
 from core.configuration.chat import ChatConfig
 from chat import LOGGER
-from chat import SYSTEM_PROMPT
-from core.assistant.func import download_hf_model
 from core.utils.func import write_file, read_file, read_json
 from core.utils.path_switcher import PathSwitcher
-
-
-B_INST, E_INST = "[INST]", "[/INST]"
-B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
-
-INSTRUCTION = """
-Context: {context}
-User: {query}"""
+from core.assistant.chains.factory import ChainFactory
 
 
 class AI:
@@ -40,6 +25,7 @@ class AI:
 
         self._load_source_key()
         self._load_module_dict()
+        self._load_vectorstore()
         self._create_qa_chain()
 
     def _load_source_key(self):
@@ -142,64 +128,13 @@ class AI:
             )
             LOGGER.info("Vectorstore saved.")
 
-    @staticmethod
-    def _prompt_format():
-        system_prompt = B_SYS + SYSTEM_PROMPT + E_SYS
-        prompt_template = B_INST + system_prompt + INSTRUCTION + E_INST
-        return prompt_template
-
-    def _init_model(self):
-        callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
-
-        if self.config.google_api_key:
-            model = "gemini-1.5-pro"
-            llm = ChatGoogleGenerativeAI(
-                google_api_key=self.config.google_api_key,
-                model=model,
-                temperature=0,
-                max_tokens=None,
-                timeout=None,
-                max_retries=2,
-                callbacks=callback_manager
-            )
-        else:
-            model = "MaziyarPanahi/Mistral-7B-Instruct-v0.3-GGUF"
-            model_path = download_hf_model(
-                repo_id=model,
-                filename="*Q4_K_M.gguf"
-            )
-            LOGGER.info("HF model downloaded.")
-
-            llm = LlamaCpp(
-                model_path=model_path,
-                n_ctx=8192,
-                max_tokens=8000,
-                n_gpu_layers=-1,
-                n_batch=1024,
-                n_threads=8,
-                repeat_penalty=1.1,
-                top_p=0.95,
-                top_k=40,
-                f16_kv=True,
-                callback_manager=callback_manager,
-                verbose=False
-            )
-        LOGGER.info(f"Initialised model: {model}")
-        return llm
-
-
     def _create_qa_chain(self):
-        self._load_vectorstore()
-        template = self._prompt_format()
-        qa_chain_prompt = PromptTemplate(
-            input_variable=["context", "query"],
-            template=template
-        )
-        self._qa_chain = create_stuff_documents_chain(
-            llm=self._init_model(),
-            prompt=qa_chain_prompt
-        )
-        LOGGER.info("Created QA-chain.")
+        self._qa_chain = ChainFactory(self.config).get_chain()
+        if self._qa_chain is not None:
+            self._qa_chain.create()
+            LOGGER.info(f"Created QA-chain, model: {self._qa_chain.model_name}.")
+        else:
+            raise Exception("No QA-chain.")
 
     def _get_documents_by_query(self, query: str, k: int = 20) -> list:
         return self._vectorstore.similarity_search(query=query, k=k)
@@ -216,19 +151,14 @@ class AI:
         )
 
     def _invoke(self, input_documents, query):
-        self._qa_chain.invoke(
-            {
-                'context': input_documents,
-                'query': query
-            }
-        )
+        self._qa_chain.stream(input_documents, query)
 
     def chat(self):
         LOGGER.info("Run chat.")
         separator = ''
         while True:
             query = input("\n\nQuery: ")
-            module_path = input("\n\nModule Path: ")
+            module_path = input("\n\nModule Path (not necessary): ")
             module_path = module_path.strip()
             print(separator)
             LOGGER.info("Query received.\n")
@@ -288,7 +218,12 @@ class AI:
             query=query
         )
 
-    def _code_documentation(self, module: dict, docs: list):
+    def _code_documentation(
+        self,
+        module: dict,
+        docs: list,
+        contain_code_text=False
+    ):
         query = (
             f"Create documentaion for '{module['name']}' module by Markdown format. "
             "In the documentation, describe in one sentence "
@@ -296,6 +231,8 @@ class AI:
             f"{'class' if len(self._get_classes(module)) else 'classes'}. "
             f"The documentation have to include methods:\n{self._methods_str(module)}."
         )
+        if not contain_code_text:
+            query += " The documentation should not contain the module code, only the names of the objects."
         self._invoke(
             input_documents=self._filter_by_metadata(docs, value='code'),
             query=query
@@ -322,7 +259,13 @@ class AI:
                 self._invoke(input_documents=dep_docs, query=query)
                 print('\n')
 
-    def generate_documentation(self):
+    def generate_documentation(
+        self,
+        description=True,
+        code=True,
+        dependencies=True,
+        contain_code_text=False
+    ):
         LOGGER.info("Run chat.")
         separator = ('\n\n===================================================='
                      '====================================================\n\n')
@@ -338,10 +281,13 @@ class AI:
                 filter={"metadata":  {'source': module_path}}
             )
             print(separator)
-            self._description(module, docs)
-            print(separator)
-            self._code_documentation(module, docs)
-            print(separator)
-            self._dependencies_documentation(module, docs)
-            print(separator)
+            if dependencies:
+                self._description(module, docs)
+                print(separator)
+            if code:
+                self._code_documentation(module, docs, contain_code_text)
+                print(separator)
+            if description:
+                self._dependencies_documentation(module, docs)
+                print(separator)
             LOGGER.info("Response returned.")
