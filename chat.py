@@ -16,7 +16,13 @@ def run_chat():
     from core.assistant.ai import AI
 
     ai = AI(config=CONFIG)
-    ai.generate_documentation()
+    #ai.chat()
+    ai.generate_documentation(
+        description=True,
+        code=True,
+        dependencies=True,
+        contain_code_text=False
+    )
 
 
 if __name__ == "__main__":

@@ -10,6 +10,19 @@ go.Shape.defineArrowheadGeometry('Triangle', 'F1 m 0,0 l 8,4.62 -8,4.62 z');
 go.Shape.defineArrowheadGeometry('BackwardTriangle', 'F1 m 8,4 l 0,4 -8,-4 8,-4 0,4 z');
 go.Shape.defineArrowheadGeometry('StretchedDiamond', 'F1 m 0,3 l 5,-3 5,3 -5,3 -5,-3 z');
 
+
+function readTextFile(filePath) {
+    let request = new XMLHttpRequest();
+    request.open('GET', filePath, false);
+    request.send(null);
+
+    if (request.status === 200) {
+        return request.responseText;
+    } else {
+        throw new Error('Unable to load text file at ' + filePath);
+    }
+}
+
 function readJsonFile(filePath) {
     let request = new XMLHttpRequest();
     request.open('GET', filePath, false);
@@ -22,7 +35,8 @@ function readJsonFile(filePath) {
     }
 }
 
-let diagramData = readJsonFile('./temp/source/diagrams.json')
+let source_key = readTextFile('./temp/source/source_key');
+let diagramData = readJsonFile(`./temp/saved/${source_key}/diagrams.json`)
 
 console.log(diagramData)
 
