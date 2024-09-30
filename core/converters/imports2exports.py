@@ -13,6 +13,8 @@ class Imports2Exports(AbstractConverter):
     ) -> str:
         if export_value in structure['inheritance']:
             return 'is_inheritance'
+        if export_value in structure['compositions']:
+            return 'is_composition'
         if export_value in structure['calls']:
             return 'is_call'
         return 'is_undefined'

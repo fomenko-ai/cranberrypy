@@ -14,6 +14,7 @@ class ModuleClass(Base):
         self.attributes = None
         self.methods = None
         self.inheritance = None
+        self.compositions = None
         self.calls = None
 
         self._parse()
@@ -22,6 +23,7 @@ class ModuleClass(Base):
         self.attributes = []
         self.methods = []
         self.inheritance = []
+        self.compositions = set()
         self.calls = set()
 
         if self.bases:
@@ -39,12 +41,16 @@ class ModuleClass(Base):
                     if _def.name == '__init__':
                         if method.assignments:
                             self.attributes.extend(method.assignments)
+                        if method.compositions:
+                            for compos in method.compositions:
+                                self.compositions.add(compos)
                     if method.name:
                         self.methods.append(method.to_dict())
                     if method.calls:
                         for call in method.calls:
                             if call != 'super':
                                 self.calls.add(call)
+        self.compositions = list(self.compositions)
         self.calls = list(self.calls)
 
     def to_dict(self):

@@ -49,6 +49,7 @@ class Assignment(Base):
         elif isinstance(self.value, ast.Call):
             self.has_call = True
             if isinstance(self.value.func, ast.Name):
+                self.check_class_call(self.value.func.id)
                 self.call_names.append(self.value.func.id)
             elif isinstance(self.value.func, ast.Attribute):
                 try:

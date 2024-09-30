@@ -21,6 +21,7 @@ class ClassMethod(Base):
         self.arguments = None
         self.returns = None
         self.assignments = None
+        self.compositions = None
         self.calls = None
 
         self._parse()
@@ -40,9 +41,15 @@ class ClassMethod(Base):
         if self.definition.returns is not None:
             self.returns = Annotation(self.definition.returns).name
 
+    def _add_composition(self, call_names: list):
+        for name in call_names:
+            if isinstance(name, str) and name[0].isupper():
+                self.compositions.add(name)
+            else:
+                if name not in STOP_LIST:
+                    self.calls.add(name)
+
     def _add_calls(self, call_names: list):
-        if self.calls is None:
-            self.calls = set()
         for name in call_names:
             if name not in STOP_LIST:
                 self.calls.add(name)
@@ -50,6 +57,8 @@ class ClassMethod(Base):
     def _body(self):
         if self.assignments is None:
             self.assignments = []
+        if self.compositions is None:
+            self.compositions = set()
         if self.calls is None:
             self.calls = set()
 
@@ -57,7 +66,9 @@ class ClassMethod(Base):
             if isinstance(statement, (ast.Assign, ast.AnnAssign)):
                 assignment = Assignment(statement)
                 self.assignments.append(assignment.to_dict())
-                if assignment.has_call:
+                if self.name == '__init__' and assignment.has_class_call:
+                    self._add_composition(assignment.call_names)
+                elif assignment.has_call:
                     self._add_calls(assignment.call_names)
             elif isinstance(statement, ast.Expr):
                 expression = Expression(statement)
