@@ -28,7 +28,7 @@ def test_main():
             for file_path in project.file_paths:
                 try:
                     module = SourceModule(file_path)
-                    if module.has_imports:
+                    if not module.is_empty:
                         graph2imports.add(module, graph)
                 except Exception as e:
                     print(e)

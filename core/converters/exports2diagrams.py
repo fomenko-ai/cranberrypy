@@ -8,7 +8,9 @@ class Exports2Diagrams(AbstractConverter):
 
     @staticmethod
     def _cls_key(module_name: str, class_name: str) -> str:
-        return '.'.join([module_name, class_name])
+        if class_name is None:
+            class_name = ''
+        return '.___cls___.'.join([module_name, class_name])
 
     @staticmethod
     def _link_to_dict(link: Tuple[str, str, str, str, bool]) -> dict:

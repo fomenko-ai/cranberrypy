@@ -1,20 +1,23 @@
+import os
+
 from core.configuration.base import BaseConfig
 from pydeps.target import Target
 
 
 class MainConfig(BaseConfig):
-    def __init__(self, file_path, in_docker_image=False):
+    def __init__(self, file_path):
         super().__init__(file_path)
-        self.in_docker_image = in_docker_image
         self.root_directory_path = self.config.get(
             'starter', 'root_directory_path'
         )
-        self.root_image_path = self.config.get('starter', 'root_image_path')
         self.excluded_paths = None
+        self.root_image_path = self.config.get('starter', 'root_image_path')
+        self.in_docker_image = False
 
         self._get_excluded_paths()
 
-        if self.in_docker_image:
+        if '/app' in os.getcwd():
+            self.in_docker_image = True
             self._convert_paths()
 
         self.target = Target(self.project_path)

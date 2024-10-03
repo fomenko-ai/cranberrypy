@@ -31,13 +31,12 @@ class Graph2Imports(AbstractConverter):
                                     import_name
                                 ] = _import.dirname
                             module.select_import(source.name)
-            if module.imports:
-                self.data['modules'][module.name] = {
-                    "imports": module.imports,
-                    "classes": module.classes,
-                    "file_path": module.file_path
-                }
-                self.data["dirnames"][module.name] = module.dirname
+            self.data['modules'][module.name] = {
+                "imports": module.imports,
+                "classes": module.classes,
+                "file_path": module.file_path
+            }
+            self.data["dirnames"][module.name] = module.dirname
 
     def save(self):
         write_json(

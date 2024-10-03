@@ -26,12 +26,21 @@ class Imports2Exports(AbstractConverter):
         classes: Dict[str, dict]
     ) -> List:
         exports = []
-        for cls, structure in classes.items():
+        if classes:
+            for cls, structure in classes.items():
+                exports.append(
+                    (
+                        module_name,
+                        cls,
+                        self._get_dependency_type(export_value, structure)
+                    )
+                )
+        else:
             exports.append(
                 (
                     module_name,
-                    cls,
-                    self._get_dependency_type(export_value, structure)
+                    None,
+                    'is_undefined'
                 )
             )
         return exports
