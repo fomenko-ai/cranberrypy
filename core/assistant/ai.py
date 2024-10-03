@@ -240,7 +240,7 @@ class AI:
 
     def _dependencies_documentation(self, module: dict, docs: list):
         filtered_docs = self._filter_by_metadata(docs, value='dependency')
-        for dep_type in ['inheritance', 'call', 'usage']:
+        for dep_type in ['inheritance', 'composition', 'call', 'usage']:
             dep_docs = self._filter_by_metadata(
                 filtered_docs,
                 key='dependency_type',
@@ -281,13 +281,13 @@ class AI:
                 filter={"metadata":  {'source': module_path}}
             )
             print(separator)
-            if dependencies:
+            if description:
                 self._description(module, docs)
                 print(separator)
             if code:
                 self._code_documentation(module, docs, contain_code_text)
                 print(separator)
-            if description:
+            if dependencies:
                 self._dependencies_documentation(module, docs)
                 print(separator)
             LOGGER.info("Response returned.")

@@ -3,11 +3,7 @@ from core.logger import Logger
 from core.project import Project
 
 
-CONFIG = MainConfig(
-    file_path='cranberrypy.ini',
-    in_docker_image=True  # False - If you run main.py manually
-)
-
+CONFIG = MainConfig('cranberrypy.ini')
 LOGGER = Logger(config=CONFIG)
 LOGGER.setup_logger()
 
@@ -36,7 +32,7 @@ def main():
         for file_path in project.file_paths:
             try:
                 module = SourceModule(file_path)
-                if module.has_imports:
+                if not module.is_empty:
                     graph2imports.add(module, graph)
             except Exception as e:
                 LOGGER.error(f"FILE PATH: {file_path}. MESSAGE: {e}.")

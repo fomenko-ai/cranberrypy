@@ -11,6 +11,8 @@ class Diagrams2Assistant(AbstractConverter):
     def _get_link_text(link: dict) -> str:
         if link['type'] == 'inheritance':
             return f"'{link['text']}' from '{link['from']}' is inherited in '{link['to']}'."
+        elif link['type'] == 'composition':
+            return f"'{link['text']}' from '{link['from']}' is composition in '{link['to']}'."
         elif link['type'] == 'call':
             return f"'{link['text']}' from '{link['from']}' is called in '{link['to']}'."
         elif link['type'] == 'usage':

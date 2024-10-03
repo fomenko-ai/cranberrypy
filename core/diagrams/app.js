@@ -4,11 +4,10 @@ const colors = {
 };
 
 go.Shape.defineArrowheadGeometry('NullPoint', 'm 0,0 l 0,0');
-go.Shape.defineArrowheadGeometry('Standard', 'F1 m 0,0 l 8,4 -8,4 2,-4 z');
-go.Shape.defineArrowheadGeometry('OpenTriangle', 'm 0,0 l 8,4 -8,4');
-go.Shape.defineArrowheadGeometry('Triangle', 'F1 m 0,0 l 8,4.62 -8,4.62 z');
+go.Shape.defineArrowheadGeometry('Backward', 'F1 m 8,0 l -2,4 2,4 -8,-4 z');
 go.Shape.defineArrowheadGeometry('BackwardTriangle', 'F1 m 8,4 l 0,4 -8,-4 8,-4 0,4 z');
 go.Shape.defineArrowheadGeometry('StretchedDiamond', 'F1 m 0,3 l 5,-3 5,3 -5,3 -5,-3 z');
+
 
 
 function readTextFile(filePath) {
@@ -326,7 +325,7 @@ const nodeGroupContextMenu =
   go.GraphObject.build("ContextMenu")
     .add(
       go.GraphObject.build("ContextMenuButton", { click: showGroup })
-        .add(new go.TextBlock(". . . FOLDER . . .")),
+        .add(new go.TextBlock(". . . DIRECTORY . . .")),
       go.GraphObject.build("ContextMenuButton", { click: showGroup })
         .add(new go.TextBlock("Modules")),
       go.GraphObject.build("ContextMenuButton", { click: showGroupDependencies })
@@ -350,9 +349,9 @@ diagram.linkTemplate =
     })
     .add(
       new go.Shape( { isPanelMain: true, stroke: "transparent", strokeWidth: 8 }),
-      new go.Shape( { isPanelMain: true }),
-      new go.Shape({toArrow: "NullPoint", scale: 2, stroke: colors.black, fill: colors.black}).bind("toArrow"),
-      new go.Shape({fromArrow: "NullPoint", scale: 2, stroke: colors.black, fill: colors.white}).bind("fromArrow"),
+      new go.Shape( { isPanelMain: true}).bind("strokeDashArray"),
+      new go.Shape({toArrow: "NullPoint", scale: 2, stroke: colors.black}).bind("toArrow").bind("fill"),
+      new go.Shape({fromArrow: "NullPoint", scale: 2, stroke: colors.black}).bind("fromArrow").bind("fill"),
       new go.TextBlock({ text: "Text Block", background: "white", margin: 2 })
         .bind("text")
     );

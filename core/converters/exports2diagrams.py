@@ -8,7 +8,9 @@ class Exports2Diagrams(AbstractConverter):
 
     @staticmethod
     def _cls_key(module_name: str, class_name: str) -> str:
-        return '.'.join([module_name, class_name])
+        if class_name is None:
+            class_name = ''
+        return '.___cls___.'.join([module_name, class_name])
 
     @staticmethod
     def _link_to_dict(link: Tuple[str, str, str, str, bool]) -> dict:
@@ -20,17 +22,31 @@ class Exports2Diagrams(AbstractConverter):
                 "text": import_item,
                 "toArrow": None,
                 "fromArrow": "BackwardTriangle",
+                "fill": "white",
                 "isClass": is_class,
                 "type": "inheritance"
 
+            }
+        elif link_types == 'is_composition':
+            return {
+                "from": _from,
+                "to": _to,
+                "text": import_item,
+                "toArrow": "StretchedDiamond",
+                "fromArrow": "Backward",
+                "fill": "black",
+                "isClass": is_class,
+                "type": "composition"
             }
         elif link_types == 'is_call':
             return {
                 "from": _from,
                 "to": _to,
                 "text": import_item,
-                "toArrow": "StretchedDiamond",
-                "fromArrow": None,
+                "toArrow": None,
+                "fromArrow": "Backward",
+                "fill": "black",
+                "strokeDashArray": [2, 5],
                 "isClass": is_class,
                 "type": "call"
             }
@@ -41,6 +57,8 @@ class Exports2Diagrams(AbstractConverter):
                 "text": import_item,
                 "toArrow": None,
                 "fromArrow": None,
+                "fill": "black",
+                "strokeDashArray": [2, 5],
                 "isClass": is_class,
                 "type": "usage"
             }

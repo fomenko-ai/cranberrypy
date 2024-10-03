@@ -17,7 +17,8 @@ class SourceModule(AbstractModule):
         try:
             if len(self.name_list) >= node.level:
                 import_name = self.name_list[:node.level*-1]
-                import_name.append(node.module)
+                if node.module is not None:
+                    import_name.append(node.module)
                 return '.'.join(import_name)
         except Exception as e:
             LOGGER.error(
