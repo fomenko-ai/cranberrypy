@@ -1,93 +1,179 @@
-# cranberrypy
+# Cranberrypy
+
+A service for automating documentation of Python projects.
 
 
+## Functionality
+* Building dependency diagrams similar to UML
+* Generating documentation text using AI
+* Chatting with AI in the context of the entire project or a single module
 
-## Getting started
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## Components
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+**Python:**
+* [ast](https://docs.python.org/3/library/ast.html) (code analysis)
+* [pydeps](https://github.com/thebjorn/pydeps) (building a dependency graph) 
+* [langchain](https://python.langchain.com/docs/introduction/) (generating project documentation)
 
-## Add your files
+**JavaScript:**
+* [GoJS](https://gojs.net/latest/index.html) (visualizing project dependency diagrams)
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+**Docker** (running the main service module, which performs data preparation)
 
+**LLM** (project documentation generation):
+* MaziyarPanahi/Mistral-7B-Instruct-v0.3-GGUF 
+* gemini-1.5-pro 
+
+
+## Main files, modules and directories
+
+* `cranberrypy.ini` - configuration file.
+
+* `main.py` - analyzes a project code and prepares data for visualization of diagrams and working with AI.
+
+* `core/diagrams/app.js` - building dependency diagrams.
+
+* `index.html` - launching app.js and displaying diagrams
+
+* `chat.py` - chat with AI, works in two modes: 
+    * chat with the context of the entire project or a separate module 
+    * generating documentation for the selected module
+
+* `core/assistant/ai.py` - preparing LLM, context of project data and dynamic formation of a query for generating documentation based on the code of the selected module.
+
+* `starter.py` - creating a Dockerfile, preparing a container for Cranberrypy and the project under study, installing project dependencies, launching `main.py`.
+
+* `temp` - directory for temporary files.
+
+* `temp/saved` - saved data about projects 
+
+* `temp/source/source_key` - source key, the file contains the name of the last project for which `main.py` was launched.
+
+* `examples` - typical examples of module dependencies, used to check the visualization of diagrams and unit tests
+
+## Working with the service
+
+### Filling out the configuration file
+
+In the `cranberrypy.ini` file, you need to fill in the fields:
+
+* `project_path` - absolute path to the project
+
+* `excluded_paths` - paths or directories of the project that need to be excluded during analysis 
+
+* `python_version` - project version
+
+* `requirements_path` - absolute path to the project file (if the path is different from project_path) 
+
+* `install_kwargs` - additional arguments for the command `pip install -r ...` when installing project dependencies (if needed)
+
+* `root_directory_path` - any shared directory for the Cranberrypy service and your project
+
+**Example:**
+
+```ini
+[main]
+project_path = /home/aleksei/path_to/my_project/
+excluded_paths =
+    venv
+    venv39
+    .git
+    /home/aleksei/path_to/my_project/venv
+    /home/aleksei/path_to/my_project/venv39
+    /home/aleksei/path_to/my_project/.git
+
+[starter]
+python_version = 3.9
+requirements_path = /home/aleksei/path_to/my_project/requirements.txt
+install_kwargs = --trusted-host example.host --extra-index-url  http://example.host/lib/python
+root_directory_path = /home/aleksei/path_to/
+root_image_path = /app/temp/projects/
 ```
-cd existing_repo
-git remote add origin https://gitlab.exan.tech/recon/cranberrypy.git
-git branch -M master
-git push -uf origin master
-```
 
-## Integrate with your tools
 
-- [ ] [Set up project integrations](https://gitlab.exan.tech/recon/cranberrypy/-/settings/integrations)
+### Code analysis and data preparation
 
-## Collaborate with your team
+Use the `main.py` module. There are two ways to run the module - automatically and manually.
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+#### Automatically 
 
-## Test and Deploy
+With the automatic option, you need to check if Docker is working.
 
-Use the built-in continuous integration in GitLab.
+If Docker is installed and working, run the `starter.py` script. The script will create a Dockerfile, prepare a container, install dependencies, and run `main.py`. 
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+The finished data is saved in the `temp/saved` directory.
 
-***
+The name of the project, as the last data source for main.py, will be written to `source_key`.
 
-# Editing this README
+#### Manually 
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+The manual method is recommended if you need to run main.py multiple times.
 
-## Suggestions for a good README
+1. Create a virtual environment.
+2. Install Cranberrypy dependencies in the `requirements.txt` file. 
+3. Install project dependencies.
+4. Run `main.py`.
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+The finished data is saved in the `temp/saved` directory.
 
-## Name
-Choose a self-explaining name for your project.
+The name of the project, as the last data source for `main.py`, will be written to `source_key`.
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+### Visualizing dependency diagrams
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+Cranberrypy uses the GoJS framework.
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+Open the `index.html` file in a browser.
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+By right-clicking in an empty field, you can select the required project folder.
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+By right-clicking on a module, you can display the module's dependencies or view classes.
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+By right-clicking on a class, you can display the class's dependencies.
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+To reduce response time and be able to work with the service in the absence of the Internet, [you can download the go.js file](https://gojs.net/latest/download.html). Specify the path to the file in `index.html`.
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+### Generating documentation text
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+1. In a virtual environment, install the Cranberrypy dependencies in the `ai_requirements.txt` file. 
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+2. If you plan to use Gemini, [generate an API key](https://aistudio.google.com/app/apikey) and fill in the `google_api_key` field in the `cranberrypy.ini` file
 
-## License
-For open source projects, say how it is licensed.
+   If you plan to use Mistral, you do not need to fill in the `google_api_key` field.
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+3. Run `chat.py`.
+
+   The first time you run it, the AI data will be prepared, which may take about 5 minutes. When you run it again, the already prepared data will be used.
+
+ 4. After starting the chat, you need to enter the absolute path of the module. 
+
+    Copy the file *(Ctrl + Shift + C)*, and paste the path into the terminal.
+
+    If necessary, in `chat.py` you can change the `SYSTEM_PROMPT` or switch flags in the `generate_documentation` method.
+
+### Chatting with AI
+
+1. To activate the query sending function, uncomment line 19 in the `chat.py` module. 
+
+2. Enter a query.
+
+3. Optional, but if you need to get a more accurate answer for a specific module of the project, copy and send the absolute path of the module.
+
+***The chat only responds to the query and does not save the history of previous queries in context.***
+
+### Switching between projects
+
+To change the data source in the `temp/source/source_key` file, specify the name of the project you need.
+
+You can view the list of available projects in `temp/saved`. 
+
+## Authors
+
+* Aleksander Gulin 
+* Aleksander Melnikov 
+* Aleksei Fomenko
+
+## Contacts
+
+Send questions, comments and suggestions to [fal@exante.eu](mailto:fal@exante.eu)
