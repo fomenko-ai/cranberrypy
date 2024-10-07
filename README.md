@@ -144,6 +144,8 @@ Usage
 
 ![Usage](https://files.fikus.me/hell/95c18b16e712904bffa61ffe660ae1e367779757.png)
 
+The code of the examples is located in the directory `examples`.
+
 By right-clicking in an empty field, you can select the required project folder.
 
 By right-clicking on a module, you can display the module's dependencies or view classes.
@@ -151,6 +153,8 @@ By right-clicking on a module, you can display the module's dependencies or view
 By right-clicking on a class, you can display the class's dependencies.
 
 ***To reduce response time and be able to work with the service in the absence of the Internet, [you can download the go.js file](https://gojs.net/latest/download.html). Specify the path to the file in `index.html`.***
+
+You can quickly check the correctness of the visualization of dependencies by running Cranberrypy on the directory `examples`.
 
 ### Generating documentation text
 
