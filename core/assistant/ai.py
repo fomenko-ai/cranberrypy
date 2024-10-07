@@ -158,12 +158,19 @@ class AI:
         separator = ''
         while True:
             query = input("\n\nQuery: ")
+            module_path_list = []
             module_path = input("\n\nModule Path (not necessary): ")
-            module_path = module_path.strip()
+            while module_path:
+                module_path_list.append(module_path.strip())
+                module_path = input(
+                    f"\nModule Path (enter a blank line to complete): "
+                )
             print(separator)
             LOGGER.info("Query received.\n")
-            if module_path:
-                docs = self._get_documents_by_module_path(module_path)
+            if module_path_list:
+                docs = []
+                for module_path in module_path_list:
+                    docs.extend(self._get_documents_by_module_path(module_path))
             else:
                 docs = self._get_documents_by_query(query)
             self._invoke(docs, query)

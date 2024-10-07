@@ -1,7 +1,6 @@
-# Cranberrypy
+![](https://files.fikus.me/hell/cf885d395efa26fb23a68eae0032ca56b01f4d46.jpg)
 
 A service for automating documentation of Python projects.
-
 
 ## Functionality
 * Building dependency diagrams similar to UML
@@ -186,7 +185,7 @@ If necessary, in `chat.py` you can change the `SYSTEM_PROMPT` or switch flags in
 
 2. Enter a query.
 
-3. Optional, but if you need to get a more accurate answer for a specific module of the project, copy and send the absolute path of the module.
+3. Optional, but if you need to get a more accurate answer for a specific module or several modules of the project, copy and send the absolute path of the module.
 
 ***The chat only responds to the query and does not save the history of previous queries in context.***
 
