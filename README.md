@@ -129,15 +129,19 @@ To view the project dependency diagrams, open the `index.html` file in a browser
 #### Examples of dependency visualization
 
 Inheritance
+
 ![Inheritance](https://files.fikus.me/hell/5ef7591936b386826b1d7bc06f4d48ff395e4113.png)
 
 Composition
+
 ![Composition](https://files.fikus.me/hell/efc09d770b5991db2ae8399af640b5e2a55e6b67.png)
 
 Call
+
 ![Call](https://files.fikus.me/hell/b18791ef6afd4cafe29760bf5fe5a50bdca9d808.png)
 
 Usage
+
 ![Usage](https://files.fikus.me/hell/95c18b16e712904bffa61ffe660ae1e367779757.png)
 
 By right-clicking in an empty field, you can select the required project folder.
