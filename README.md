@@ -124,7 +124,21 @@ The name of the project, as the last data source for `main.py`, will be written 
 
 Cranberrypy uses the GoJS framework.
 
-Open the `index.html` file in a browser.
+To view the project dependency diagrams, open the `index.html` file in a browser.
+
+#### Examples of dependency visualization
+
+Inheritance
+![Inheritance](https://files.fikus.me/hell/5ef7591936b386826b1d7bc06f4d48ff395e4113.png)
+
+Composition
+![Composition](https://files.fikus.me/hell/efc09d770b5991db2ae8399af640b5e2a55e6b67.png)
+
+Call
+![Call](https://files.fikus.me/hell/b18791ef6afd4cafe29760bf5fe5a50bdca9d808.png)
+
+Usage
+![Usage](https://files.fikus.me/hell/95c18b16e712904bffa61ffe660ae1e367779757.png)
 
 By right-clicking in an empty field, you can select the required project folder.
 
@@ -132,7 +146,7 @@ By right-clicking on a module, you can display the module's dependencies or view
 
 By right-clicking on a class, you can display the class's dependencies.
 
-To reduce response time and be able to work with the service in the absence of the Internet, [you can download the go.js file](https://gojs.net/latest/download.html). Specify the path to the file in `index.html`.
+***To reduce response time and be able to work with the service in the absence of the Internet, [you can download the go.js file](https://gojs.net/latest/download.html). Specify the path to the file in `index.html`.***
 
 ### Generating documentation text
 
@@ -150,7 +164,13 @@ To reduce response time and be able to work with the service in the absence of t
 
     Copy the file *(Ctrl + Shift + C)*, and paste the path into the terminal.
 
-    If necessary, in `chat.py` you can change the `SYSTEM_PROMPT` or switch flags in the `generate_documentation` method.
+
+Documentation is generated according to a given template:
+* brief description of the module
+* description of classes, methods
+* description of module dependencies
+
+If necessary, in `chat.py` you can change the `SYSTEM_PROMPT` or switch flags in the `generate_documentation` method.
 
 ### Chatting with AI
 
