@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import List, Union
 
 from langchain.text_splitter import Language, RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import JSONLoader
@@ -136,6 +136,28 @@ class AI:
         else:
             raise Exception("No QA-chain.")
 
+    @staticmethod
+    def _input_module_path(
+        is_multiple=True,
+        is_necessary=True
+    ) -> Union[str, List[str]]:
+        condition = '' if is_necessary else '(not necessary)'
+        module_path = input(f"\n\nModule Path {condition}: ")
+        if is_necessary and not module_path:
+            while not module_path:
+                print("\nModule Path is required.")
+                module_path = input(f"\nModule Path: ")
+        if is_multiple:
+            module_paths = []
+            while module_path:
+                module_paths.append(module_path.strip())
+                module_path = input(
+                    f"\nModule Path (enter a blank line to complete): "
+                )
+            return module_paths
+        else:
+            return module_path.strip()
+
     def _get_documents_by_query(self, query: str, k: int = 20) -> list:
         return self._vectorstore.similarity_search(query=query, k=k)
 
@@ -157,22 +179,31 @@ class AI:
         LOGGER.info("Run chat.")
         separator = ''
         while True:
-            query = input("\n\nQuery: ")
-            module_path_list = []
-            module_path = input("\n\nModule Path (not necessary): ")
-            while module_path:
-                module_path_list.append(module_path.strip())
-                module_path = input(
-                    f"\nModule Path (enter a blank line to complete): "
-                )
+            query = input("\n\nQuery : ")
+            module_paths = self._input_module_path(is_necessary=False)
             print(separator)
             LOGGER.info("Query received.\n")
-            if module_path_list:
+            if module_paths:
                 docs = []
-                for module_path in module_path_list:
-                    docs.extend(self._get_documents_by_module_path(module_path))
+                for path in module_paths:
+                    docs.extend(self._get_documents_by_module_path(path))
             else:
                 docs = self._get_documents_by_query(query)
+            self._invoke(docs, query)
+            print(separator)
+            LOGGER.info("Response returned.")
+
+    def chat_with_persistent_context(self, module_paths: List[str] = None):
+        separator = ''
+        if not module_paths:
+            module_paths = self._input_module_path()
+        docs = []
+        for path in module_paths:
+            docs.extend(self._get_documents_by_module_path(path))
+        while True:
+            query = input("\n\nQuery : ")
+            print(separator)
+            LOGGER.info("Query received.\n")
             self._invoke(docs, query)
             print(separator)
             LOGGER.info("Response returned.")
@@ -277,8 +308,7 @@ class AI:
         separator = ('\n\n===================================================='
                      '====================================================\n\n')
         while True:
-            module_path = input("\n\nModule Path: ")
-            module_path = module_path.strip()
+            module_path = self._input_module_path(is_multiple=False)
             print(separator)
             LOGGER.info("Query received.\n")
             module = self._get_module(module_path)
