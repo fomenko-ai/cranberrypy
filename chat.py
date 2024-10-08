@@ -1,10 +1,12 @@
+import sys
+
 from core.configuration.chat import ChatConfig
 from core.logger import Logger
 
 CONFIG = ChatConfig('cranberrypy.ini')
 
 LOGGER = Logger(config=CONFIG, name=__name__)
-LOGGER.setup_logger()
+LOGGER.setup_logger(stream=sys.stdout)
 
 
 SYSTEM_PROMPT = """You are a helpful assistant, you will use the provided context to answer user question.
@@ -17,6 +19,7 @@ def run_chat():
 
     ai = AI(config=CONFIG)
     #ai.chat()
+    #ai.chat_with_persistent_context(module_paths=[])
     ai.generate_documentation(
         description=True,
         code=True,

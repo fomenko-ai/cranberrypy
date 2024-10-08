@@ -1,7 +1,6 @@
-# Cranberrypy
+![](https://files.fikus.me/hell/cf885d395efa26fb23a68eae0032ca56b01f4d46.jpg)
 
 A service for automating documentation of Python projects.
-
 
 ## Functionality
 * Building dependency diagrams similar to UML
@@ -168,9 +167,9 @@ You can quickly check the correctness of the visualization of dependencies by ru
 
    The first time you run it, the AI data will be prepared, which may take about 5 minutes. When you run it again, the already prepared data will be used.
 
- 4. After starting the chat, you need to enter the absolute path of the module. 
+4. After starting the chat, you need to enter the absolute path of the module. 
 
-    Copy the file *(Ctrl + Shift + C)*, and paste the path into the terminal.
+   Copy the file *(Ctrl + Shift + C)*, and paste the path into the terminal.
 
 
 Documentation is generated according to a given template:
@@ -182,11 +181,23 @@ If necessary, in `chat.py` you can change the `SYSTEM_PROMPT` or switch flags in
 
 ### Chatting with AI
 
-1. To activate the query sending function, uncomment line 19 in the `chat.py` module. 
+1. To activate the query sending function, uncomment line 21 in the `chat.py` module. 
 
 2. Enter a query.
 
-3. Optional, but if you need to get a more accurate answer for a specific module of the project, copy and send the absolute path of the module.
+3. Optional, but if you need to get a more accurate answer for a specific module or several modules of the project, copy and send the absolute path of the module.
+
+***The chat only responds to the query and does not save the history of previous queries in context.***
+
+### Chat with persistent context
+
+The feature allows you to enter queries in AI with a constant set of context data.
+
+1. To activate the persistent context, uncomment line 22 in the `chat.py` module. 
+
+2. Specify the module path list in the `chat_with_persistent_context` method.
+
+3. Enter a query.
 
 ***The chat only responds to the query and does not save the history of previous queries in context.***
 
