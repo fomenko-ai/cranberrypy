@@ -181,7 +181,7 @@ If necessary, in `chat.py` you can change the `SYSTEM_PROMPT` or switch flags in
 
 ### Chatting with AI
 
-1. To activate the query sending function, uncomment line 21 in the `chat.py` module. 
+1. To activate the query sending function, uncomment line 26 in the `chat.py` module. 
 
 2. Enter a query.
 
@@ -193,9 +193,9 @@ If necessary, in `chat.py` you can change the `SYSTEM_PROMPT` or switch flags in
 
 The feature allows you to enter queries in AI with a constant set of context data.
 
-1. To activate the persistent context, uncomment line 22 in the `chat.py` module. 
+1. To activate the persistent context, uncomment line 27 in the `chat.py` module. 
 
-2. Specify the module path list in the `chat_with_persistent_context` method.
+2. Specify the module paths in the `chat_with_persistent_context` method.
 
 3. Enter a query.
 

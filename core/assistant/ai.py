@@ -193,10 +193,19 @@ class AI:
             print(separator)
             LOGGER.info("Response returned.")
 
-    def chat_with_persistent_context(self, module_paths: List[str] = None):
+    def chat_with_persistent_context(
+        self,
+        module_paths: Union[str, List[str]] = None
+    ):
         separator = ''
         if not module_paths:
             module_paths = self._input_module_path()
+        elif isinstance(module_paths, str):
+            if '\n' in module_paths:
+                module_paths = module_paths.splitlines()
+            elif ' ' in module_paths:
+                module_paths = module_paths.split()
+        module_paths = [path.strip() for path in module_paths if path]
         docs = []
         for path in module_paths:
             docs.extend(self._get_documents_by_module_path(path))

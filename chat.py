@@ -13,13 +13,18 @@ SYSTEM_PROMPT = """You are a helpful assistant, you will use the provided contex
 Read the given context before answering questions and think step by step. If you can`t answer a user question based on
 the provided context, inform the user. Do not use any other information for answering user."""
 
+MODULE_PATHS = """
+/path_to/root_directory/your_project/module_1
+/path_to/root_directory/your_project/module_2
+"""
+
 
 def run_chat():
     from core.assistant.ai import AI
 
     ai = AI(config=CONFIG)
     #ai.chat()
-    #ai.chat_with_persistent_context(module_paths=[])
+    #ai.chat_with_persistent_context(module_paths=MODULE_PATHS)
     ai.generate_documentation(
         description=True,
         code=True,
