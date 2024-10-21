@@ -25,6 +25,8 @@ def run_chat():
     ai = AI(config=CONFIG)
     #ai.chat()
     #ai.chat_with_persistent_context(module_paths=MODULE_PATHS)
+    #ai.chat_with_current_context()
+    ai.generate_documentation_with_current_context(contain_code_text=False)
     ai.generate_documentation(
         description=True,
         code=True,

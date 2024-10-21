@@ -13,6 +13,7 @@ from chat import LOGGER
 from core.utils.func import write_file, read_file, read_json
 from core.utils.path_switcher import PathSwitcher
 from core.assistant.chains.factory import ChainFactory
+from core.modules.source_module import SourceModule
 
 
 class AI:
@@ -42,9 +43,11 @@ class AI:
         key2 = read_file(self._path_switcher.vectorstore_key)
         return key1 == key2
 
-    def _python_code(self):
+    def _python_code(self, path=None):
+        if path is None:
+            path = self.config.project_path
         loader = GenericLoader.from_filesystem(
-            self.config.project_path,
+            path=path,
             glob="**/*",
             suffixes=[".py"],
             parser=LanguageParser("python")
@@ -217,6 +220,30 @@ class AI:
             print(separator)
             LOGGER.info("Response returned.")
 
+    def chat_with_current_context(
+        self,
+        module_paths: Union[str, List[str]] = None
+    ):
+        separator = ''
+        if not module_paths:
+            module_paths = self._input_module_path()
+        elif isinstance(module_paths, str):
+            if '\n' in module_paths:
+                module_paths = module_paths.splitlines()
+            elif ' ' in module_paths:
+                module_paths = module_paths.split()
+        module_paths = [path.strip() for path in module_paths if path]
+        docs = []
+        for path in module_paths:
+            docs.extend(self._python_code(path))
+        while True:
+            query = input("\n\nQuery : ")
+            print(separator)
+            LOGGER.info("Query received.\n")
+            self._invoke(docs, query)
+            print(separator)
+            LOGGER.info("Response returned.")
+
     def _get_module(self, module_path: str) -> dict:
         module = self._module_dict.get(module_path)
         if module is None:
@@ -280,6 +307,8 @@ class AI:
         )
         if not contain_code_text:
             query += " The documentation should not contain the module code, only the names of the objects."
+        else:
+            query += " The documentation should contain the module code."
         self._invoke(
             input_documents=self._filter_by_metadata(docs, value='code'),
             query=query
@@ -335,5 +364,34 @@ class AI:
                 print(separator)
             if dependencies:
                 self._dependencies_documentation(module, docs)
+                print(separator)
+            LOGGER.info("Response returned.")
+
+    def generate_documentation_with_current_context(
+        self,
+        description=True,
+        code=True,
+        contain_code_text=False
+    ):
+        LOGGER.info("Run chat.")
+        separator = ('\n\n===================================================='
+                     '====================================================\n\n')
+        while True:
+            module_path = self._input_module_path(is_multiple=False)
+            print(separator)
+            LOGGER.info("Query received.\n")
+            module = SourceModule(module_path)
+            module.parse()
+            module = {
+                'name': module.name,
+                'classes': module.classes
+            }
+            docs = self._python_code(module_path)
+            print(separator)
+            if description:
+                self._description(module, docs)
+                print(separator)
+            if code:
+                self._code_documentation(module, docs, contain_code_text)
                 print(separator)
             LOGGER.info("Response returned.")
