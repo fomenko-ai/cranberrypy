@@ -224,3 +224,5 @@ You can view the list of available projects in `temp/saved`.
 ## Contacts
 
 Send questions, comments and suggestions to [fal@exante.eu](mailto:fal@exante.eu)
+
+![](https://files.fikus.me/hell/525814da3b75f41107aac5e7f15fadd5267a6132.jpg)
