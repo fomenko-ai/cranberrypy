@@ -201,6 +201,14 @@ The feature allows you to enter queries in AI with a constant set of context dat
 
 ***The chat only responds to the query and does not save the history of previous queries in context.***
 
+### Current context
+
+If you have made changes to your project code and want to quickly generate documentation or get a response from AI, use methods with current context:
+* `chat_with_current_context`
+* `generate_documentation_with_current_context`
+
+***As the current context it uses only the module code.***
+
 ### Switching between projects
 
 To change the data source in the `temp/source/source_key` file, specify the name of the project you need.
