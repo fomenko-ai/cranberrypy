@@ -31,9 +31,9 @@ A service for automating documentation of Python projects.
 
 * `main.py` - analyzes a project code and prepares data for visualization of diagrams and working with AI.
 
-* `core/diagrams/app.js` - building dependency diagrams.
+* `core/diagrams/app/viewer.js` - building dependency diagrams.
 
-* `index.html` - launching app.js and displaying diagrams
+* `index.html` - launching `viewer.js` and displaying diagrams
 
 * `chat.py` - chat with AI, works in two modes: 
     * chat with the context of the entire project or a separate module 
