@@ -1,8 +1,9 @@
 import datetime
-from typing import Dict
+import json
+from typing import Dict, Tuple
 
 from core.converters.base import AbstractConverter
-from core.utils.func import write_json, write_file
+from core.utils.func import write_json, read_json, write_file
 
 
 class Diagrams2Assistant(AbstractConverter):
@@ -18,15 +19,16 @@ class Diagrams2Assistant(AbstractConverter):
         elif link['type'] == 'usage':
             return f"'{link['text']}' from '{link['from']}' is used in '{link['to']}'."
 
-    def _sort_links(self, links: list) -> dict:
+    @classmethod
+    def _sort_links(cls, links: list) -> dict:
         result = dict()
         for link in links:
-            if link['isClass'] is True:
+            if link.get('isClass') is True:
                 continue
             key = (link['from'], link['to'], link['text'], link['type'])
             value = {
                 'type': link['type'],
-                'text': self._get_link_text(link)
+                'text': cls._get_link_text(link)
             }
             result.update({key: value})
         return result
@@ -105,3 +107,37 @@ class Diagrams2Assistant(AbstractConverter):
             self._get_assistant_key(),
             f"./temp/saved/{self.save_dir}/assistant_key"
         )
+
+    @staticmethod
+    def _filter_groups(data) -> Tuple[list, dict]:
+        nodes = []
+        groups = {}
+        for node in data:
+            if node.get('isGroup'):
+                groups.update({node['key']: node['text']})
+            else:
+                nodes.append(node)
+        return nodes, groups
+
+    @classmethod
+    def from_download_file(cls, file_path) -> list:
+        result = []
+        data = json.loads(read_json(file_path))
+        if 'nodeDataArray' in data and 'linkDataArray' in data:
+            links = cls._sort_links(data['linkDataArray'])
+            nodes, groups = cls._filter_groups(data['nodeDataArray'])
+            for node in nodes:
+                key = node.get('key')
+                group = node.get('group')
+                module = {
+                    'key': key,
+                    'directory': groups.get(group) if group else None,
+                    'text': node.get('fullInfo'),
+                    'dependencies': [v for k, v in links.items() if key in k]
+                }
+                result.append(module)
+            return result
+        else:
+            raise Exception(
+                f"Download diagram is not valid, file path: {file_path}."
+            )

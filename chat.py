@@ -27,6 +27,7 @@ def run_chat():
     #ai.chat_with_persistent_context(module_paths=MODULE_PATHS)
     #ai.chat_with_current_context(module_paths=MODULE_PATHS)
     #ai.generate_documentation_with_current_context()
+    ai.generate_diagram_code(using_project_context=True)
     ai.generate_documentation(
         description=True,
         code=True,

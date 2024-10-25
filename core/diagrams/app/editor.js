@@ -15,10 +15,11 @@ function showFullInfoNode(e, obj) {
     fullInfoNodeTemplate(nodeContextMenu);
 }
 
-function updateLink(obj, fromArrow=null, toArrow=null, fill=colors.black, strokeDashArray=null){
+function updateLink(obj, type=null, fromArrow=null, toArrow=null, fill=colors.black, strokeDashArray=null){
     let model = obj.diagram.model;
     let linkData = obj.part.data;
     model.startTransaction("update link");
+    model.setDataProperty(linkData, "type", type);
     model.setDataProperty(linkData, "fromArrow", fromArrow);
     model.setDataProperty(linkData, "toArrow", toArrow);
     model.setDataProperty(linkData, "fill", fill);
@@ -27,25 +28,25 @@ function updateLink(obj, fromArrow=null, toArrow=null, fill=colors.black, stroke
 }
 
 function setInheritanceLink(e, obj){
-    updateLink(obj, "BackwardTriangle", null, colors.white);
+    updateLink(obj, "inheritance", "BackwardTriangle", null, colors.white);
 }
 
 function setCompositionLink(e, obj){
-    updateLink(obj, "Backward", "StretchedDiamond");
+    updateLink(obj, "composition", "Backward", "StretchedDiamond");
 }
 
 function setCallLink(e, obj){
-    updateLink(obj, "Backward", null, colors.black, [2, 5]);
+    updateLink(obj, "call", "Backward", null, colors.black, [2, 5]);
 }
 
 function setUsageLink(e, obj){
-    updateLink(obj, null, null, colors.black, [2, 5]);
+    updateLink(obj, "usage", null, null, colors.black, [2, 5]);
 }
 
 const diagram = new go.Diagram("DiagramDiv",
     {
-      "clickCreatingTool.archetypeNodeData": { text: "Node", color: "lightgray" },
-      "commandHandler.archetypeGroupData": { text: "Group", isGroup: true },
+      "clickCreatingTool.archetypeNodeData": { text: "New module", color: "lightgray" },
+      "commandHandler.archetypeGroupData": { text: "New directory", isGroup: true },
       "undoManager.isEnabled": true,
       "allowTextEdit": true,
       layout: getForceDirectedLayout()
@@ -127,3 +128,38 @@ diagram.groupTemplate.contextMenu = contextMenu
 let modelAsText = readJsonFile(savedDiagramPath);
 console.log(modelAsText)
 diagram.model = go.Model.fromJson(modelAsText);
+
+function updateText(obj, text=null){
+    let model = diagram.model;
+    let data = obj.data;
+    model.startTransaction("update text");
+    model.setDataProperty(data, "text", text);
+    if (obj instanceof go.Node) {
+        model.setDataProperty(data, "shortInfo", text);
+        model.setDataProperty(data, "fullInfo", text);
+    }
+    model.commitTransaction("update text");
+}
+
+diagram.addModelChangedListener(function(evt) {
+  if (!evt.isTransactionFinished) return;
+  if (evt.oc !== "TextEditing") return;
+
+  let transaction = evt.object;
+  if (transaction === null) return;
+
+  console.log(transaction.changes)
+  let changes = transaction.changes.filter(e => e.diagram !== null)
+  console.log(changes)
+  changes.each(function(e) {
+      let obj = e.diagram.selection.first()
+      if (
+          (obj instanceof go.Node || obj instanceof go.Link)
+          && e.cn === "text"
+          && e.du instanceof go.TextBlock
+          && e.k instanceof go.Diagram
+      ) {
+          updateText(obj, changes.r[0].lc)
+      }
+  });
+});

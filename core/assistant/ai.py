@@ -14,6 +14,7 @@ from core.utils.func import write_file, read_file, read_json
 from core.utils.path_switcher import PathSwitcher
 from core.assistant.chains.factory import ChainFactory
 from core.modules.source_module import SourceModule
+from core.converters.diagrams2assistant import Diagrams2Assistant
 
 
 class AI:
@@ -394,4 +395,54 @@ class AI:
             if code:
                 self._code_documentation(module, docs, contain_code_text)
                 print(separator)
+            LOGGER.info("Response returned.")
+
+    @staticmethod
+    def _diagram_module(data) -> str:
+        text = f"KEY: {data['key']}\n\n"
+        text += f"DIRECTORY: '{data.get('directory')}'\n\n" if data.get('directory') else ""
+        text += f"'{data['text']}'"
+        return text
+
+    @staticmethod
+    def _diagram_dependency(data) -> str:
+        return data['text']
+
+    def _diagram_text(self, data):
+        description = list()
+        dependencies = set()
+
+        for module in data:
+            description.append(self._diagram_module(module))
+            for dependency in module['dependencies']:
+                dependencies.add(self._diagram_dependency(dependency))
+
+        description = '\n\n'.join(description)
+        dependencies = '\n'.join(dependencies)
+
+        return (
+            "Create a code based on the text in 'Module Description'. "
+            "Each module has a 'KEY' value and can has 'DIRECTORY'. "
+            "Dependencies between classes are specified in 'Dependencies'.\n\n"
+            f"Module Description:\n\n{description}\n\n"
+            f"Dependencies:\n\n{dependencies}\n\n"
+        )
+
+    def generate_diagram_code(self, using_project_context=False):
+        LOGGER.info("Run chat.")
+        separator = ('\n\n===================================================='
+                     '====================================================\n\n')
+        while True:
+            file_path = self._input_module_path(is_multiple=False)
+            print(separator)
+            LOGGER.info("Query received.\n")
+            data = Diagrams2Assistant.from_download_file(file_path)
+            query = self._diagram_text(data)
+            LOGGER.info("Diagram data prepared.\n")
+            docs = []
+            if using_project_context:
+                docs.extend(self._get_documents_by_query(query))
+            print(separator)
+            self._invoke(docs, query)
+            print(separator)
             LOGGER.info("Response returned.")
