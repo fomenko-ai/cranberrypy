@@ -122,7 +122,7 @@ class Diagrams2Assistant(AbstractConverter):
     @classmethod
     def from_download_file(cls, file_path) -> list:
         result = []
-        data = json.loads(read_json(file_path))
+        data = read_json(file_path)
         if 'nodeDataArray' in data and 'linkDataArray' in data:
             links = cls._sort_links(data['linkDataArray'])
             nodes, groups = cls._filter_groups(data['nodeDataArray'])

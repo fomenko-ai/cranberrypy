@@ -37,8 +37,7 @@ function readJsonFile(filePath) {
 }
 
 function saveJsonFile(data, filename) {
-    const jsonData = JSON.stringify(data, null, 2);
-    const blob = new Blob([jsonData], { type: 'application/json' });
+    const blob = new Blob([data], { type: 'application/json' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = filename;
@@ -126,3 +125,42 @@ function digraphDiagram(){
 function forceDirectedDiagram(){
     diagram.layout = getForceDirectedLayout();
 }
+
+const diagram = new go.Diagram("DiagramDiv",
+    {
+      "clickCreatingTool.archetypeNodeData": { text: "New module", color: "lightgray" },
+      "commandHandler.archetypeGroupData": { text: "New directory", isGroup: true },
+      "undoManager.isEnabled": true,
+      "allowTextEdit": true,
+      layout: getForceDirectedLayout()
+    });
+
+diagram.linkTemplate =
+  new go.Link({
+      routing: go.Routing.AvoidsNodes,
+      curve: go.Curve.JumpGap,
+      mouseEnter: (e, link) => link.elt(0).stroke = "rgba(0,90,156,0.3)",
+      mouseLeave: (e, link) => link.elt(0).stroke = "transparent",
+      relinkableFrom: true, relinkableTo: true
+    })
+    .add(
+      new go.Shape( { isPanelMain: true, stroke: "transparent", strokeWidth: 8 }),
+      new go.Shape( { isPanelMain: true}).bind("strokeDashArray"),
+      new go.Shape({toArrow: "NullPoint", scale: 2, stroke: colors.black}).bind("toArrow").bind("fill"),
+      new go.Shape({fromArrow: "NullPoint", scale: 2, stroke: colors.black}).bind("fromArrow").bind("fill"),
+      new go.TextBlock({ text: "Identifier", background: "white", margin: 2, editable: true })
+        .bind("text")
+    );
+
+diagram.groupTemplate =
+  new go.Group("Vertical",
+      { ungroupable: true })
+    .add(
+      new go.TextBlock({ font: "bold 12pt sans-serif", editable: true })
+        .bindTwoWay("text"),
+      new go.Panel("Auto")
+        .add(
+          new go.Shape({ fill: colors.lightgray, stroke: colors.darkgray}),
+          new go.Placeholder({ padding: 5 })
+        )
+    );

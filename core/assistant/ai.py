@@ -141,26 +141,27 @@ class AI:
             raise Exception("No QA-chain.")
 
     @staticmethod
-    def _input_module_path(
+    def _input_file_path(
         is_multiple=True,
-        is_necessary=True
+        is_necessary=True,
+        file_name='Module'
     ) -> Union[str, List[str]]:
         condition = '' if is_necessary else '(not necessary)'
-        module_path = input(f"\n\nModule Path {condition}: ")
-        if is_necessary and not module_path:
-            while not module_path:
-                print("\nModule Path is required.")
-                module_path = input(f"\nModule Path: ")
+        path = input(f"\n\n{file_name} Path {condition}: ")
+        if is_necessary and not path:
+            while not path:
+                print(f"\n{file_name} Path is required.")
+                path = input(f"\nn{file_name} Path: ")
         if is_multiple:
-            module_paths = []
-            while module_path:
-                module_paths.append(module_path.strip())
-                module_path = input(
-                    f"\nModule Path (enter a blank line to complete): "
+            paths = []
+            while path:
+                paths.append(path.strip())
+                path = input(
+                    f"\n{file_name} Path (enter a blank line to complete): "
                 )
-            return module_paths
+            return paths
         else:
-            return module_path.strip()
+            return path.strip()
 
     def _get_documents_by_query(self, query: str, k: int = 20) -> list:
         return self._vectorstore.similarity_search(query=query, k=k)
@@ -184,7 +185,7 @@ class AI:
         separator = ''
         while True:
             query = input("\n\nQuery : ")
-            module_paths = self._input_module_path(is_necessary=False)
+            module_paths = self._input_file_path(is_necessary=False)
             print(separator)
             LOGGER.info("Query received.\n")
             if module_paths:
@@ -201,9 +202,10 @@ class AI:
         self,
         module_paths: Union[str, List[str]] = None
     ):
+        LOGGER.info("Run chat with persistent context.")
         separator = ''
         if not module_paths:
-            module_paths = self._input_module_path()
+            module_paths = self._input_file_path()
         elif isinstance(module_paths, str):
             if '\n' in module_paths:
                 module_paths = module_paths.splitlines()
@@ -227,7 +229,7 @@ class AI:
     ):
         separator = ''
         if not module_paths:
-            module_paths = self._input_module_path()
+            module_paths = self._input_file_path()
         elif isinstance(module_paths, str):
             if '\n' in module_paths:
                 module_paths = module_paths.splitlines()
@@ -343,11 +345,11 @@ class AI:
         dependencies=True,
         contain_code_text=False
     ):
-        LOGGER.info("Run chat.")
+        LOGGER.info("Run generating documentation.")
         separator = ('\n\n===================================================='
                      '====================================================\n\n')
         while True:
-            module_path = self._input_module_path(is_multiple=False)
+            module_path = self._input_file_path(is_multiple=False)
             print(separator)
             LOGGER.info("Query received.\n")
             module = self._get_module(module_path)
@@ -374,11 +376,11 @@ class AI:
         code=True,
         contain_code_text=False
     ):
-        LOGGER.info("Run chat.")
+        LOGGER.info("Run generating documentation with current context.")
         separator = ('\n\n===================================================='
                      '====================================================\n\n')
         while True:
-            module_path = self._input_module_path(is_multiple=False)
+            module_path = self._input_file_path(is_multiple=False)
             print(separator)
             LOGGER.info("Query received.\n")
             module = SourceModule(module_path)
@@ -408,7 +410,7 @@ class AI:
     def _diagram_dependency(data) -> str:
         return data['text']
 
-    def _diagram_text(self, data):
+    def _query_from_diagram(self, data):
         description = list()
         dependencies = set()
 
@@ -423,21 +425,26 @@ class AI:
         return (
             "Create a code based on the text in 'Module Description'. "
             "Each module has a 'KEY' value and can has 'DIRECTORY'. "
-            "Dependencies between classes are specified in 'Dependencies'.\n\n"
+            "Dependencies between classes are specified in 'Dependencies'. "
+            "If there are dependencies between modules, "
+            "create the corresponding imports.\n\n"
             f"Module Description:\n\n{description}\n\n"
             f"Dependencies:\n\n{dependencies}\n\n"
         )
 
-    def generate_diagram_code(self, using_project_context=False):
-        LOGGER.info("Run chat.")
+    def generate_code_according_to_diagram(self, using_project_context=False):
+        LOGGER.info("Run generating code according to diagram.")
         separator = ('\n\n===================================================='
                      '====================================================\n\n')
         while True:
-            file_path = self._input_module_path(is_multiple=False)
+            file_path = self._input_file_path(
+                is_multiple=False,
+                file_name='Diagram JSON'
+            )
             print(separator)
             LOGGER.info("Query received.\n")
             data = Diagrams2Assistant.from_download_file(file_path)
-            query = self._diagram_text(data)
+            query = self._query_from_diagram(data)
             LOGGER.info("Diagram data prepared.\n")
             docs = []
             if using_project_context:

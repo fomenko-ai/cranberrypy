@@ -4,14 +4,6 @@ let diagramData = readJsonFile(`./temp/saved/${source_key}/diagrams.json`)
 
 console.log(diagramData)
 
-
-const diagram =
-  new go.Diagram("DiagramDiv",
-    {
-      "undoManager.isEnabled": true,
-      layout: getForceDirectedLayout()
-    });
-
 function getNodeDataArray(nodeKeys) {
     let nodes = [];
     let groupKeys = [];
@@ -259,22 +251,6 @@ const nodeGroupContextMenu =
 
 textNodeTemplate(nodeModuleContextMenu);
 diagram.groupTemplate.contextMenu = nodeGroupContextMenu
-diagram.linkTemplate =
-  new go.Link({
-      routing: go.Routing.AvoidsNodes,
-      curve: go.Curve.JumpGap,
-      mouseEnter: (e, link) => link.elt(0).stroke = "rgba(0,90,156,0.3)",
-      mouseLeave: (e, link) => link.elt(0).stroke = "transparent",
-      relinkableFrom: true, relinkableTo: true
-    })
-    .add(
-      new go.Shape( { isPanelMain: true, stroke: "transparent", strokeWidth: 8 }),
-      new go.Shape( { isPanelMain: true}).bind("strokeDashArray"),
-      new go.Shape({toArrow: "NullPoint", scale: 2, stroke: colors.black}).bind("toArrow").bind("fill"),
-      new go.Shape({fromArrow: "NullPoint", scale: 2, stroke: colors.black}).bind("fromArrow").bind("fill"),
-      new go.TextBlock({ text: "Identifier", background: "white", margin: 2, editable: true })
-        .bind("text")
-    );
 
 function getGroupContextMenu(groups){
     let menu = [

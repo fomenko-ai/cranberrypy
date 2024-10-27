@@ -5,6 +5,7 @@ A service for automating documentation of Python projects.
 ## Functionality
 * Building dependency diagrams similar to UML
 * Generating documentation text using AI
+* Generating code using dependency diagrams and AI
 * Chatting with AI in the context of the entire project or a single module
 
 
@@ -31,15 +32,20 @@ A service for automating documentation of Python projects.
 
 * `main.py` - analyzes a project code and prepares data for visualization of diagrams and working with AI.
 
-* `core/diagrams/app/viewer.js` - building dependency diagrams.
+* `core/diagrams/app/workspace.js` - building dependency diagrams of a project.
 
-* `index.html` - launching `viewer.js` and displaying diagrams
+* `workspace.html` - launching `workspace.js` and displaying diagrams.
+
+* `core/diagrams/app/studio.js` - building new project and viewing saved dependency diagrams.
+
+* `studio.html` - launching `studio.js` and displaying diagrams.
 
 * `chat.py` - chat with AI, works in two modes: 
     * chat with the context of the entire project or a separate module 
     * generating documentation for the selected module
+    * generating code for the selected diagram
 
-* `core/assistant/ai.py` - preparing LLM, context of project data and dynamic formation of a query for generating documentation based on the code of the selected module.
+* `core/assistant/ai.py` - preparing LLM, context of project data and dynamic formation of a query for generating documentation and code
 
 * `starter.py` - creating a Dockerfile, preparing a container for Cranberrypy and the project under study, installing project dependencies, launching `main.py`.
 
@@ -123,7 +129,7 @@ The name of the project, as the last data source for `main.py`, will be written 
 
 Cranberrypy uses the GoJS framework.
 
-To view the project dependency diagrams, open the `index.html` file in a browser.
+To view the project dependency diagrams, open the `workspace.html` file in a browser via IDE (localhost will be launched automatically).
 
 #### Examples of dependency visualization
 
@@ -145,15 +151,37 @@ Usage
 
 The code of the examples is located in the directory `examples`.
 
-By right-clicking in an empty field, you can select the required project folder.
+*  By right-clicking in an empty field, you can select the required project folder.
 
-By right-clicking on a module, you can display the module's dependencies or view classes.
+*  By right-clicking on a module, you can display the module's dependencies or view classes.
 
-By right-clicking on a class, you can display the class's dependencies.
+* By right-clicking on a class, you can display the class's dependencies.
 
-***To reduce response time and be able to work with the service in the absence of the Internet, [you can download the go.js file](https://gojs.net/latest/download.html). Specify the path to the file in `index.html`.***
+***To reduce response time and be able to work with the service in the absence of the Internet, [you can download the go.js file](https://gojs.net/latest/download.html). Specify the path to the file in `workspace.html`.***
 
 You can quickly check the correctness of the visualization of dependencies by running Cranberrypy on the directory `examples`.
+
+### Editing dependency diagrams
+
+The text of modules and types of dependencies can be edited, copied and deleted. 
+
+* By left-clicking on a module, you can edit the module's text.
+
+* By right-clicking on a dependency, you can set dependency type.
+
+* To save changes, right-click on an empty field, then "SAVE DIAGRAM".
+
+* To copy, click *Ctrl + C*, *Ctrl + V*.
+
+* To delete, click *Delete*.
+
+* To cancel changes, click *Ctrl + Z*.
+
+* To reset all changes, refresh the page.
+
+When you save a diagram, only the modules and dependencies that are displayed on the page are written to the file.
+
+To view saved diagram, copy the diagram file to `temp` and specify the path to the file in `studio.html`, variable `savedDiagramPath`.
 
 ### Generating documentation text
 
@@ -179,9 +207,17 @@ Documentation is generated according to a given template:
 
 If necessary, in `chat.py` you can change the `SYSTEM_PROMPT` or switch flags in the `generate_documentation` method.
 
+### Generating code according to diagram
+
+1. To activate the method, uncomment method in line 31 in the `chat.py` module.
+
+2. After starting the chat, you need to enter the absolute path of the diagram JSON file.
+
+If necessary to apply the project context, you can switch flag in the `generate_code_according_to_diagram` method.
+
 ### Chatting with AI
 
-1. To activate the query sending function, uncomment line 26 in the `chat.py` module. 
+1. To activate the query sending function, uncomment line 27 in the `chat.py` module. 
 
 2. Enter a query.
 
@@ -193,7 +229,7 @@ If necessary, in `chat.py` you can change the `SYSTEM_PROMPT` or switch flags in
 
 The feature allows you to enter queries in AI with a constant set of context data.
 
-1. To activate the persistent context, uncomment line 27 in the `chat.py` module. 
+1. To activate the persistent context, uncomment line 28 in the `chat.py` module. 
 
 2. Specify the module paths in the `chat_with_persistent_context` method.
 
