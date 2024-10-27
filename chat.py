@@ -23,9 +23,13 @@ def run_chat():
     from core.assistant.ai import AI
 
     ai = AI(config=CONFIG)
+
     #ai.chat()
     #ai.chat_with_persistent_context(module_paths=MODULE_PATHS)
-    #ai.chat_with_current_context()
+    #ai.chat_with_current_context(module_paths=MODULE_PATHS)
+
+    #ai.generate_code_according_to_diagram(using_project_context=True)
+
     #ai.generate_documentation_with_current_context()
     ai.generate_documentation(
         description=True,

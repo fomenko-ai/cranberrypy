@@ -1,102 +1,8 @@
-const colors = {
-  white: '#FFFFFF',
-  black: '#101920',
-};
-
-go.Shape.defineArrowheadGeometry('NullPoint', 'm 0,0 l 0,0');
-go.Shape.defineArrowheadGeometry('Backward', 'F1 m 8,0 l -2,4 2,4 -8,-4 z');
-go.Shape.defineArrowheadGeometry('BackwardTriangle', 'F1 m 8,4 l 0,4 -8,-4 8,-4 0,4 z');
-go.Shape.defineArrowheadGeometry('StretchedDiamond', 'F1 m 0,3 l 5,-3 5,3 -5,3 -5,-3 z');
-
-
-
-function readTextFile(filePath) {
-    let request = new XMLHttpRequest();
-    request.open('GET', filePath, false);
-    request.send(null);
-
-    if (request.status === 200) {
-        return request.responseText;
-    } else {
-        throw new Error('Unable to load text file at ' + filePath);
-    }
-}
-
-function readJsonFile(filePath) {
-    let request = new XMLHttpRequest();
-    request.open('GET', filePath, false);
-    request.send(null);
-
-    if (request.status === 200) {
-        return JSON.parse(request.responseText);
-    } else {
-        throw new Error('Unable to load JSON file at ' + filePath);
-    }
-}
-
 let source_key = readTextFile('./temp/source/source_key');
+let downloadFilename = source_key
 let diagramData = readJsonFile(`./temp/saved/${source_key}/diagrams.json`)
 
 console.log(diagramData)
-
-function textNodeTemplate(menu){
-    diagram.nodeTemplate = new go.Node("Auto", { contextMenu: menu })
-    .add(
-      new go.Shape("RoundedRectangle")
-        .bind("fill", "color"),
-      new go.TextBlock({ margin: 5, fill: colors.black })
-        .bind("text", "text")
-    );
-}
-
-function shortInfoNodeTemplate(menu){
-    diagram.nodeTemplate = new go.Node("Auto", { contextMenu: menu })
-    .add(
-      new go.Shape("RoundedRectangle")
-        .bind("fill", "color"),
-      new go.TextBlock({ margin: 5, fill: colors.black })
-        .bind("text", "shortInfo")
-    );
-}
-
-function fullInfoNodeTemplate(menu){
-    diagram.nodeTemplate = new go.Node("Auto", { contextMenu: menu })
-    .add(
-      new go.Shape("RoundedRectangle")
-        .bind("fill", "color"),
-      new go.TextBlock({ margin: 5, fill: colors.black })
-        .bind("text", "fullInfo")
-    );
-}
-
-function getLayeredDigraphLayout(){
-    return new go.LayeredDigraphLayout(
-          {
-              direction: 90,
-              layerSpacing: 200,
-              columnSpacing: 100
-          }
-      )
-}
-
-function getForceDirectedLayout(){
-    return new go.ForceDirectedLayout()
-}
-
-function digraphDiagram(){
-    diagram.layout = getLayeredDigraphLayout();
-}
-
-function forceDirectedDiagram(){
-    diagram.layout = getForceDirectedLayout();
-}
-
-const diagram =
-  new go.Diagram("DiagramDiv",
-    {
-      "undoManager.isEnabled": true,
-      layout: getForceDirectedLayout()
-    });
 
 function getNodeDataArray(nodeKeys) {
     let nodes = [];
@@ -114,9 +20,15 @@ function getNodeDataArray(nodeKeys) {
     return nodes;
 }
 
+function getSelectedNodeKey(obj){
+    let key = obj.part.data.key
+    downloadFilename = key.replaceAll('.', '_');
+    return key;
+}
+
 function showClassImports(e, obj) {
     digraphDiagram();
-    let selectedNodeKey = obj.part.data.key;
+    let selectedNodeKey = getSelectedNodeKey(obj);
     let linkDataArray = diagramData.links.filter(link => link.to === selectedNodeKey);
     let linkKeys = linkDataArray.map(link => link.from)
     let nodeKeys = [selectedNodeKey].concat(linkKeys)
@@ -126,7 +38,7 @@ function showClassImports(e, obj) {
 
 function showModuleImports(e, obj) {
     digraphDiagram();
-    let selectedNodeKey = obj.part.data.key;
+    let selectedNodeKey = getSelectedNodeKey(obj);
     let linkDataArray = diagramData.links.filter(link => (link.to === selectedNodeKey) && !link.isClass);
     let linkKeys = linkDataArray.map(link => link.from)
     let nodeKeys = [selectedNodeKey].concat(linkKeys)
@@ -136,7 +48,7 @@ function showModuleImports(e, obj) {
 
 function showGroupImports(e, obj) {
     digraphDiagram();
-    let selectedNodeKey = obj.part.data.key;
+    let selectedNodeKey = getSelectedNodeKey(obj);
     let groupNodesArray = diagramData.nodes.filter(node => (node.group === selectedNodeKey) && node.isModule);
     let groupNodesKeys = groupNodesArray.map(node => node.key)
     let linkDataArray = diagramData.links.filter(link => groupNodesKeys.includes(link.to));
@@ -148,7 +60,7 @@ function showGroupImports(e, obj) {
 
 function showClassExports(e, obj) {
     digraphDiagram();
-    let selectedNodeKey = obj.part.data.key;
+    let selectedNodeKey = getSelectedNodeKey(obj);
     let linkDataArray = diagramData.links.filter(link => link.from === selectedNodeKey);
     let linkKeys = linkDataArray.map(link => link.to)
     let nodeKeys = [selectedNodeKey].concat(linkKeys)
@@ -158,7 +70,7 @@ function showClassExports(e, obj) {
 
 function showModuleExports(e, obj) {
     digraphDiagram();
-    let selectedNodeKey = obj.part.data.key;
+    let selectedNodeKey = getSelectedNodeKey(obj);
     let linkDataArray = diagramData.links.filter(link => (link.from === selectedNodeKey) && !link.isClass);
     let linkKeys = linkDataArray.map(link => link.to)
     let nodeKeys = [selectedNodeKey].concat(linkKeys)
@@ -168,7 +80,7 @@ function showModuleExports(e, obj) {
 
 function showGroupExports(e, obj) {
     digraphDiagram();
-    let selectedNodeKey = obj.part.data.key;
+    let selectedNodeKey = getSelectedNodeKey(obj);
     let groupNodesArray = diagramData.nodes.filter(node => (node.group === selectedNodeKey) && node.isModule);
     let groupNodesKeys = groupNodesArray.map(node => node.key)
     let linkDataArray = diagramData.links.filter(link => groupNodesKeys.includes(link.from));
@@ -180,7 +92,7 @@ function showGroupExports(e, obj) {
 
 function showClassDependencies(e, obj) {
     digraphDiagram();
-    let selectedNodeKey = obj.part.data.key;
+    let selectedNodeKey = getSelectedNodeKey(obj);
     let linkDataArray = diagramData.links.filter(
         node => node.to === selectedNodeKey || node.from === selectedNodeKey
     );
@@ -192,7 +104,7 @@ function showClassDependencies(e, obj) {
 
 function showModuleDependencies(e, obj) {
     digraphDiagram();
-    let selectedNodeKey = obj.part.data.key;
+    let selectedNodeKey = getSelectedNodeKey(obj);
     let linkDataArray = diagramData.links.filter(
         node => (node.to === selectedNodeKey || node.from === selectedNodeKey) && !node.isClass
     );
@@ -204,7 +116,7 @@ function showModuleDependencies(e, obj) {
 
 function showGroupDependencies(e, obj) {
     digraphDiagram();
-    let selectedNodeKey = obj.part.data.key;
+    let selectedNodeKey = getSelectedNodeKey(obj);
     let groupNodesArray = diagramData.nodes.filter(node => (node.group === selectedNodeKey) && node.isModule);
     let groupNodesKeys = groupNodesArray.map(node => node.key)
     let linkDataArray = diagramData.links.filter(
@@ -218,8 +130,7 @@ function showGroupDependencies(e, obj) {
 
 function showClass(e, obj) {
     forceDirectedDiagram()
-    let selectedNode = obj.part.data;
-    let selectedNodeKey = selectedNode.key;
+    let selectedNodeKey = getSelectedNodeKey(obj);
     let nodeDataArray = diagramData.nodes.filter(node => node.key === selectedNodeKey);
     let nodeKeys = nodeDataArray.map(node => node.key)
     diagram.model = new go.GraphLinksModel(getNodeDataArray(nodeKeys));
@@ -230,6 +141,7 @@ function showClassModule(e, obj) {
     forceDirectedDiagram()
     let selectedNode = obj.part.data;
     let selectedNodeKey = selectedNode.module;
+    downloadFilename = selectedNodeKey.replaceAll('.', '_');
     let nodeDataArray = diagramData.nodes.filter(node => node.module === selectedNodeKey);
     let nodeKeys = nodeDataArray.map(node => node.key)
     diagram.model = new go.GraphLinksModel(getNodeDataArray(nodeKeys));
@@ -238,8 +150,7 @@ function showClassModule(e, obj) {
 
 function showModuleClasses(e, obj) {
     forceDirectedDiagram()
-    let selectedNode = obj.part.data;
-    let selectedNodeKey = selectedNode.key;
+    let selectedNodeKey = getSelectedNodeKey(obj);
     let nodeDataArray = diagramData.nodes.filter(node => node.module === selectedNodeKey);
     if (nodeDataArray) {
         let nodeKeys = nodeDataArray.map(node => node.key)
@@ -253,8 +164,7 @@ function showModuleClasses(e, obj) {
 
 function showModule(e, obj) {
     forceDirectedDiagram()
-    let selectedNode = obj.part.data;
-    let selectedNodeKey = selectedNode.key;
+    let selectedNodeKey = getSelectedNodeKey(obj);
     let nodeDataArray = diagramData.nodes.filter(node => node.key === selectedNodeKey);
     let nodeKeys = nodeDataArray.map(node => node.key)
     diagram.model = new go.GraphLinksModel(getNodeDataArray(nodeKeys));
@@ -263,8 +173,7 @@ function showModule(e, obj) {
 
 function showGroup(e, obj) {
     forceDirectedDiagram();
-    let selectedNode = obj.part.data;
-    let selectedNodeKey = selectedNode.key;
+    let selectedNodeKey = getSelectedNodeKey(obj);
     let nodeDataArray = diagramData.nodes.filter(node => (node.group === selectedNodeKey || node.key === selectedNodeKey) && !node.isClass);
     diagram.model = new go.GraphLinksModel(nodeDataArray);
     textNodeTemplate(nodeGroupContextMenu);
@@ -273,6 +182,7 @@ function showGroup(e, obj) {
 function showGroupModulesByKey(selectedGroupKey){
     function _showGroupModulesByKey(e, obj) {
         forceDirectedDiagram();
+        downloadFilename = selectedGroupKey.replaceAll('.', '_');
         let nodeDataArray = diagramData.nodes.filter(node => (node.group === selectedGroupKey || node.key === selectedGroupKey) && !node.isClass);
         diagram.model = new go.GraphLinksModel(nodeDataArray);
         textNodeTemplate(nodeModuleContextMenu);
@@ -282,9 +192,10 @@ function showGroupModulesByKey(selectedGroupKey){
 
 function showAllModules(e, obj) {
     forceDirectedDiagram()
+    downloadFilename = source_key
     let nodeDataArray = diagramData.nodes.filter(node => !node.isClass);
     diagram.model = new go.GraphLinksModel(nodeDataArray);
-    textNodeTemplate(nodeModuleContextMenu)
+    textNodeTemplate(nodeModuleContextMenu);
 }
 
 const nodeClassContextMenu =
@@ -340,21 +251,6 @@ const nodeGroupContextMenu =
 
 textNodeTemplate(nodeModuleContextMenu);
 diagram.groupTemplate.contextMenu = nodeGroupContextMenu
-diagram.linkTemplate =
-  new go.Link({
-      routing: go.Routing.AvoidsNodes,
-      curve: go.Curve.JumpGap,
-      mouseEnter: (e, link) => link.elt(0).stroke = "rgba(0,90,156,0.3)",
-      mouseLeave: (e, link) => link.elt(0).stroke = "transparent"
-    })
-    .add(
-      new go.Shape( { isPanelMain: true, stroke: "transparent", strokeWidth: 8 }),
-      new go.Shape( { isPanelMain: true}).bind("strokeDashArray"),
-      new go.Shape({toArrow: "NullPoint", scale: 2, stroke: colors.black}).bind("toArrow").bind("fill"),
-      new go.Shape({fromArrow: "NullPoint", scale: 2, stroke: colors.black}).bind("fromArrow").bind("fill"),
-      new go.TextBlock({ text: "Text Block", background: "white", margin: 2 })
-        .bind("text")
-    );
 
 function getGroupContextMenu(groups){
     let menu = [
@@ -378,6 +274,10 @@ function getGroupContextMenu(groups){
                 .add(new go.TextBlock(key))
         )
     }
+    menu.push(
+        go.GraphObject.build("ContextMenuButton", { click: saveDiagram })
+        .add(new go.TextBlock(">    SAVE DIAGRAM    <"))
+    )
     return menu
 }
 
@@ -389,7 +289,6 @@ diagram.contextMenu =
     .add(
       ...groupContextMenu
     );
-
 
 let nodeDataArray = diagramData.nodes.filter(node => !node.isClass);
 diagram.model = new go.GraphLinksModel(nodeDataArray);
