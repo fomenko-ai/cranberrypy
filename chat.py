@@ -24,19 +24,23 @@ def run_chat():
 
     ai = AI(config=CONFIG)
 
-    #ai.chat()
-    #ai.chat_with_persistent_context(module_paths=MODULE_PATHS)
-    #ai.chat_with_current_context(module_paths=MODULE_PATHS)
+    # ai.chat()
+    # ai.chat_with_persistent_context(module_paths=MODULE_PATHS)
+    # ai.chat_with_current_context(module_paths=MODULE_PATHS)
+    #
+    # ai.generate_code_according_to_diagram(using_project_context=True)
 
-    #ai.generate_code_according_to_diagram(using_project_context=True)
-
-    #ai.generate_documentation_with_current_context()
+    # ai.generate_documentation_with_current_context()
     ai.generate_documentation(
         description=True,
         code=True,
         dependencies=True,
         contain_code_text=False
     )
+
+    # ai.generate_unit_tests(using_pytest=True)
+    # ai.generate_unit_tests_with_persistent_context(using_pytest=True)
+    # ai.generate_unit_tests_with_current_context(using_pytest=True)
 
 
 if __name__ == "__main__":

@@ -141,27 +141,28 @@ class AI:
             raise Exception("No QA-chain.")
 
     @staticmethod
-    def _input_file_path(
+    def _input_entity(
         is_multiple=True,
         is_necessary=True,
-        file_name='Module'
+        entity_type='Path',
+        entity_name='Module'
     ) -> Union[str, List[str]]:
         condition = '' if is_necessary else '(not necessary)'
-        path = input(f"\n\n{file_name} Path {condition}: ")
-        if is_necessary and not path:
-            while not path:
-                print(f"\n{file_name} Path is required.")
-                path = input(f"\nn{file_name} Path: ")
+        entity = input(f"\n\n{entity_name} {entity_type} {condition}: ")
+        if is_necessary and not entity:
+            while not entity:
+                print(f"\n{entity_name} {entity_type} is required.")
+                entity = input(f"\nn{entity_name} {entity_type}: ")
         if is_multiple:
-            paths = []
-            while path:
-                paths.append(path.strip())
-                path = input(
-                    f"\n{file_name} Path (enter a blank line to complete): "
+            entities = []
+            while entity:
+                entities.append(entity.strip())
+                entity = input(
+                    f"\n{entity_name} {entity_type} (enter a blank line to complete): "
                 )
-            return paths
+            return entities
         else:
-            return path.strip()
+            return entity.strip()
 
     def _get_documents_by_query(self, query: str, k: int = 20) -> list:
         return self._vectorstore.similarity_search(query=query, k=k)
@@ -180,12 +181,42 @@ class AI:
     def _invoke(self, input_documents, query):
         self._qa_chain.stream(input_documents, query)
 
+    def _get_persistent_module_paths(
+        self,
+        module_paths,
+        is_multiple=True,
+        is_necessary=True,
+        entity_type='Path',
+        entity_name='Module'
+    ) -> List[str]:
+        if not module_paths:
+            module_paths = self._input_entity(
+                is_multiple, is_necessary, entity_type, entity_name
+            )
+        if isinstance(module_paths, str):
+            if '\n' in module_paths:
+                module_paths = module_paths.splitlines()
+            elif ' ' in module_paths:
+                module_paths = module_paths.split()
+            else:
+                module_paths = [module_paths]
+        return [path.strip() for path in module_paths if path]
+
+    @staticmethod
+    def _parse_module(path: str) -> dict:
+        module = SourceModule(path)
+        module.parse()
+        return {
+            'name': module.name,
+            'classes': module.classes
+        }
+
     def chat(self):
         LOGGER.info("Run chat.")
         separator = ''
         while True:
             query = input("\n\nQuery : ")
-            module_paths = self._input_file_path(is_necessary=False)
+            module_paths = self._input_entity(is_necessary=False)
             print(separator)
             LOGGER.info("Query received.\n")
             if module_paths:
@@ -204,14 +235,7 @@ class AI:
     ):
         LOGGER.info("Run chat with persistent context.")
         separator = ''
-        if not module_paths:
-            module_paths = self._input_file_path()
-        elif isinstance(module_paths, str):
-            if '\n' in module_paths:
-                module_paths = module_paths.splitlines()
-            elif ' ' in module_paths:
-                module_paths = module_paths.split()
-        module_paths = [path.strip() for path in module_paths if path]
+        module_paths = self._get_persistent_module_paths(module_paths)
         docs = []
         for path in module_paths:
             docs.extend(self._get_documents_by_module_path(path))
@@ -227,15 +251,9 @@ class AI:
         self,
         module_paths: Union[str, List[str]] = None
     ):
+        LOGGER.info("Run chat with current context.")
         separator = ''
-        if not module_paths:
-            module_paths = self._input_file_path()
-        elif isinstance(module_paths, str):
-            if '\n' in module_paths:
-                module_paths = module_paths.splitlines()
-            elif ' ' in module_paths:
-                module_paths = module_paths.split()
-        module_paths = [path.strip() for path in module_paths if path]
+        module_paths = self._get_persistent_module_paths(module_paths)
         docs = []
         for path in module_paths:
             docs.extend(self._python_code(path))
@@ -349,7 +367,7 @@ class AI:
         separator = ('\n\n===================================================='
                      '====================================================\n\n')
         while True:
-            module_path = self._input_file_path(is_multiple=False)
+            module_path = self._input_entity(is_multiple=False)
             print(separator)
             LOGGER.info("Query received.\n")
             module = self._get_module(module_path)
@@ -380,15 +398,10 @@ class AI:
         separator = ('\n\n===================================================='
                      '====================================================\n\n')
         while True:
-            module_path = self._input_file_path(is_multiple=False)
+            module_path = self._input_entity(is_multiple=False)
             print(separator)
             LOGGER.info("Query received.\n")
-            module = SourceModule(module_path)
-            module.parse()
-            module = {
-                'name': module.name,
-                'classes': module.classes
-            }
+            module = self._parse_module(module_path)
             docs = self._python_code(module_path)
             print(separator)
             if description:
@@ -437,9 +450,9 @@ class AI:
         separator = ('\n\n===================================================='
                      '====================================================\n\n')
         while True:
-            file_path = self._input_file_path(
+            file_path = self._input_entity(
                 is_multiple=False,
-                file_name='Diagram JSON'
+                entity_name='Diagram JSON'
             )
             print(separator)
             LOGGER.info("Query received.\n")
@@ -452,4 +465,97 @@ class AI:
             print(separator)
             self._invoke(docs, query)
             print(separator)
+            LOGGER.info("Response returned.")
+
+    def _get_entities_for_test(self) -> List[str]:
+        return self._input_entity(
+            is_necessary=False,
+            entity_type='name',
+            entity_name='Class, method or function'
+        )
+
+    def _unittests(
+        self,
+        docs: list,
+        entities: list,
+        module: dict = None,
+        using_pytest=False
+    ):
+
+        if entities:
+            query = (
+                f"Create unit tests for '{', '.join(entities)}'"
+                f"{' using pytest' if using_pytest else ''}."
+            )
+        elif module:
+            query = (
+                f"Create unit tests for '{module['name']}' module"
+                f"{' using pytest' if using_pytest else ''}. "
+                f"Unit tests have to include methods:\n{self._methods_str(module)}."
+            )
+        else:
+            query = f"Create unit tests{' using pytest' if using_pytest else ''}."
+
+        self._invoke(
+            input_documents=self._filter_by_metadata(docs, value='code'),
+            query=query
+        )
+
+    def generate_unit_tests(self, using_pytest=False):
+        LOGGER.info("Run generating unit tests.")
+        separator = ('\n\n===================================================='
+                     '====================================================\n\n')
+        while True:
+            module_path = self._input_entity(
+                is_multiple=False
+            )
+            entities = self._get_entities_for_test()
+            print(separator)
+            LOGGER.info("Query received.\n")
+            module = self._get_module(module_path)
+            docs = self._vectorstore.similarity_search(
+                query=' ',
+                k=1000,
+                filter={"metadata": {'source': module_path}}
+            )
+            print(separator)
+            self._unittests(docs, entities, module, using_pytest)
+            LOGGER.info("Response returned.")
+
+    def generate_unit_tests_with_persistent_context(
+        self,
+        module_path: str = None,
+        using_pytest=False
+    ):
+        LOGGER.info("Run generating unit tests.")
+        separator = ('\n\n===================================================='
+                     '====================================================\n\n')
+        path = module_path if module_path else self._input_entity(is_multiple=False)
+        module = self._get_module(path)
+        docs = self._get_documents_by_module_path(path)
+        while True:
+            entities = self._get_entities_for_test()
+            print(separator)
+            LOGGER.info("Query received.\n")
+            print(separator)
+            self._unittests(docs, entities, module, using_pytest)
+            LOGGER.info("Response returned.")
+
+    def generate_unit_tests_with_current_context(
+        self,
+        module_path: str = None,
+        using_pytest=False
+    ):
+        LOGGER.info("Run generating unit tests.")
+        separator = ('\n\n===================================================='
+                     '====================================================\n\n')
+        path = module_path if module_path else self._input_entity(is_multiple=False)
+        module = self._parse_module(path)
+        docs = self._python_code(path)
+        while True:
+            entities = self._get_entities_for_test()
+            print(separator)
+            LOGGER.info("Query received.\n")
+            print(separator)
+            self._unittests(docs, entities, module, using_pytest)
             LOGGER.info("Response returned.")
