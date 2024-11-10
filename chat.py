@@ -18,6 +18,10 @@ MODULE_PATHS = """
 /path_to/root_directory/your_project/module_2
 """
 
+TEST_CONDITIONS = """
+For configuration use function 'get_config' in module 'your_project.tests.utils'.
+"""
+
 
 def run_chat():
     from core.assistant.ai import AI
@@ -38,9 +42,18 @@ def run_chat():
         contain_code_text=False
     )
 
-    # ai.generate_unit_tests(using_pytest=True)
-    # ai.generate_unit_tests_with_persistent_context(using_pytest=True)
-    # ai.generate_unit_tests_with_current_context(using_pytest=True)
+    # ai.generate_unit_tests(
+    #     conditions=TEST_CONDITIONS,
+    #     using_pytest=True
+    # )
+    # ai.generate_unit_tests_with_persistent_context(
+    #     conditions=TEST_CONDITIONS,
+    #     using_pytest=True
+    # )
+    # ai.generate_unit_tests_with_current_context(
+    #     conditions=TEST_CONDITIONS,
+    #     using_pytest=True
+    # )
 
 
 if __name__ == "__main__":

@@ -6,6 +6,7 @@ A service for automating documentation of Python projects.
 * Building dependency diagrams similar to UML
 * Generating documentation text using AI
 * Generating code using dependency diagrams and AI
+* Generating unit tests using AI
 * Chatting with AI in the context of the entire project or a single module
 
 
@@ -44,6 +45,7 @@ A service for automating documentation of Python projects.
     * chat with the context of the entire project or a separate module 
     * generating documentation for the selected module
     * generating code for the selected diagram
+    * generating unit tests
 
 * `core/assistant/ai.py` - preparing LLM, context of project data and dynamic formation of a query for generating documentation and code
 
@@ -209,15 +211,27 @@ If necessary, in `chat.py` you can change the `SYSTEM_PROMPT` or switch flags in
 
 ### Generating code according to diagram
 
-1. To activate the method, uncomment method in line 31 in the `chat.py` module.
+1. To activate `generate_code_according_to_diagram` method in the `chat.py` module.
 
 2. After starting the chat, you need to enter the absolute path of the diagram JSON file.
 
-If necessary to apply the project context, you can switch flag in the `generate_code_according_to_diagram` method.
+If necessary to apply the project context, you can switch flag in the method.
+
+### Generating unit tests
+
+1. To activate `generate_unit_tests` method in the `chat.py` module.
+
+2. After starting the chat, you need to enter the absolute path of the module. 
+
+3. Optional, but if you need to get a more accurate answer for a specific class, method or function, send names of entities.
+
+If necessary to use Pytest framework, you can switch flag in the method.
+
+***To get a more accurate and detailed answer, it is recommended reducing the number of entities for test generation.***
 
 ### Chatting with AI
 
-1. To activate the query sending function, uncomment line 27 in the `chat.py` module. 
+1. To activate `chat` method in the `chat.py` module. 
 
 2. Enter a query.
 
@@ -229,9 +243,9 @@ If necessary to apply the project context, you can switch flag in the `generate_
 
 The feature allows you to enter queries in AI with a constant set of context data.
 
-1. To activate the persistent context, uncomment line 28 in the `chat.py` module. 
+1. To activate `chat_with_persistent_context` method in the `chat.py` module. 
 
-2. Specify the module paths in the `chat_with_persistent_context` method.
+2. Specify the module paths in the method.
 
 3. Enter a query.
 
@@ -239,9 +253,10 @@ The feature allows you to enter queries in AI with a constant set of context dat
 
 ### Current context
 
-If you have made changes to your project code and want to quickly generate documentation or get a response from AI, use methods with current context:
+If you have made changes to your project code and want to quickly generate documentation, unit tests or get a response from AI, use methods with current context:
 * `chat_with_current_context`
 * `generate_documentation_with_current_context`
+* `generate_unit_tests_with_current_context`
 
 ***As the current context it uses only the module code.***
 

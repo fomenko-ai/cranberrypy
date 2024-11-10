@@ -479,9 +479,9 @@ class AI:
         docs: list,
         entities: list,
         module: dict = None,
+        conditions: str = None,
         using_pytest=False
     ):
-
         if entities:
             query = (
                 f"Create unit tests for '{', '.join(entities)}'"
@@ -496,12 +496,15 @@ class AI:
         else:
             query = f"Create unit tests{' using pytest' if using_pytest else ''}."
 
+        if conditions:
+            query += f" {conditions}"
+
         self._invoke(
             input_documents=self._filter_by_metadata(docs, value='code'),
             query=query
         )
 
-    def generate_unit_tests(self, using_pytest=False):
+    def generate_unit_tests(self, conditions: str = None, using_pytest=False):
         LOGGER.info("Run generating unit tests.")
         separator = ('\n\n===================================================='
                      '====================================================\n\n')
@@ -519,12 +522,13 @@ class AI:
                 filter={"metadata": {'source': module_path}}
             )
             print(separator)
-            self._unittests(docs, entities, module, using_pytest)
+            self._unittests(docs, entities, module, conditions, using_pytest)
             LOGGER.info("Response returned.")
 
     def generate_unit_tests_with_persistent_context(
         self,
         module_path: str = None,
+        conditions: str = None,
         using_pytest=False
     ):
         LOGGER.info("Run generating unit tests.")
@@ -538,12 +542,13 @@ class AI:
             print(separator)
             LOGGER.info("Query received.\n")
             print(separator)
-            self._unittests(docs, entities, module, using_pytest)
+            self._unittests(docs, entities, module, conditions, using_pytest)
             LOGGER.info("Response returned.")
 
     def generate_unit_tests_with_current_context(
         self,
         module_path: str = None,
+        conditions: str = None,
         using_pytest=False
     ):
         LOGGER.info("Run generating unit tests.")
@@ -557,5 +562,5 @@ class AI:
             print(separator)
             LOGGER.info("Query received.\n")
             print(separator)
-            self._unittests(docs, entities, module, using_pytest)
+            self._unittests(docs, entities, module, conditions, using_pytest)
             LOGGER.info("Response returned.")
