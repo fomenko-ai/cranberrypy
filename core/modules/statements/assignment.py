@@ -24,7 +24,7 @@ class Assignment(Base):
                 isinstance(self.statement.target, list):
             self.targets = self.statement.target
         elif isinstance(self.statement, ast.AnnAssign) and\
-                isinstance(self.statement.target, ast.Attribute):
+                isinstance(self.statement.target, (ast.Attribute, ast.Name)):
             self.targets = [self.statement.target]
         else:
             self.targets = []

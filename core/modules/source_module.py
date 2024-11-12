@@ -34,11 +34,10 @@ class SourceModule(AbstractModule):
                 self._all_imports[alias.name] = [alias.name]
 
     def _import_from(self, node: ast.ImportFrom):
+        import_name = node.module
         if node.level:
             import_name = self._get_relative_import_name(node)
-        else:
-            import_name = node.module
-        if node.module in self._all_imports:
+        if import_name in self._all_imports:
             self._all_imports[import_name].extend(
                 alias.name for alias in node.names
             )
