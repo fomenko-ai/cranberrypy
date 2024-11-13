@@ -17,6 +17,8 @@ class Imports2Exports(AbstractConverter):
             return 'is_composition'
         if export_value in structure['calls']:
             return 'is_call'
+        if export_value in structure['usages']:
+            return 'is_usage'
         return 'is_undefined'
 
     def _get_exports(

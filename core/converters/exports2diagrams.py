@@ -7,6 +7,21 @@ from core.utils.func import write_json
 class Exports2Diagrams(AbstractConverter):
 
     @staticmethod
+    def _check_import_usage(import_item: str, class_structure: dict) -> bool:
+        """
+        Checking usage of imports by module class
+        """
+        if import_item in class_structure['inheritance']:
+            return True
+        if import_item in class_structure['compositions']:
+            return True
+        if import_item in class_structure['calls']:
+            return True
+        if import_item in class_structure['usages']:
+            return True
+        return False
+
+    @staticmethod
     def _cls_key(module_name: str, class_name: str) -> str:
         if class_name is None:
             class_name = ''
@@ -241,15 +256,24 @@ class Exports2Diagrams(AbstractConverter):
                                     False
                                 )
                             )
-                            links.add(
-                                (
-                                    self._cls_key(_from, import_item),
-                                    self._cls_key(_to, cls),
+
+                            if (
+                                modules['classes'].get(_to)
+                                and modules['classes'][_to].get(cls)
+                                and self._check_import_usage(
                                     import_item,
-                                    link_types,
-                                    True
+                                    modules['classes'][_to][cls]
                                 )
-                            )
+                            ):
+                                links.add(
+                                    (
+                                        self._cls_key(_from, import_item),
+                                        self._cls_key(_to, cls),
+                                        import_item,
+                                        link_types,
+                                        True
+                                    )
+                                )
         self.data = {
             "nodes": self._node_params(
                 nodes, modules['dirnames'], modules['classes']

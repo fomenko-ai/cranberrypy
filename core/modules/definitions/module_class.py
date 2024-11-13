@@ -16,6 +16,7 @@ class ModuleClass(Base):
         self.inheritance = None
         self.compositions = None
         self.calls = None
+        self.usages = None
 
         self._parse()
 
@@ -25,12 +26,19 @@ class ModuleClass(Base):
         self.inheritance = []
         self.compositions = set()
         self.calls = set()
+        self.usages = []
 
         if self.bases:
             for base in self.bases:
                 if isinstance(base, ast.Name) and \
                    isinstance(base.ctx, ast.Load):
                     self.inheritance.append(base.id)
+                elif (
+                    isinstance(base, ast.Attribute)
+                    and hasattr(base, "value")
+                    and hasattr(base.value, "id")
+                ):
+                    self.inheritance.append(base.value.id)
         if self.body:
             for _def in self.body:
                 if isinstance(_def, (ast.Assign, ast.AnnAssign)):

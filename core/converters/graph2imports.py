@@ -31,6 +31,9 @@ class Graph2Imports(AbstractConverter):
                                     import_name
                                 ] = _import.dirname
                             module.select_import(source.name)
+
+            module.check_class_usages()
+
             self.data['modules'][module.name] = {
                 "imports": module.imports,
                 "classes": module.classes,
