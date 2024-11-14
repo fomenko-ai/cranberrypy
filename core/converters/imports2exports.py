@@ -1,28 +1,13 @@
 from typing import Dict, List
 
 from core.converters.base import AbstractConverter
-from core.utils.func import write_json
+from core.utils.func import get_dependency_type, write_json
 
 
 class Imports2Exports(AbstractConverter):
 
     @staticmethod
-    def _get_dependency_type(
-        export_value: str,
-        structure: Dict[str, List]
-    ) -> str:
-        if export_value in structure['inheritance']:
-            return 'is_inheritance'
-        if export_value in structure['compositions']:
-            return 'is_composition'
-        if export_value in structure['calls']:
-            return 'is_call'
-        if export_value in structure['usages']:
-            return 'is_usage'
-        return 'is_undefined'
-
     def _get_exports(
-        self,
         export_value: str,
         module_name: str,
         classes: Dict[str, dict]
@@ -34,7 +19,7 @@ class Imports2Exports(AbstractConverter):
                     (
                         module_name,
                         cls,
-                        self._get_dependency_type(export_value, structure)
+                        get_dependency_type(export_value, structure)
                     )
                 )
         else:
@@ -42,7 +27,7 @@ class Imports2Exports(AbstractConverter):
                 (
                     module_name,
                     None,
-                    'is_undefined'
+                    'undefined'
                 )
             )
         return exports

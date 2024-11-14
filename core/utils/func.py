@@ -1,5 +1,6 @@
 import os
 import json
+from typing import Dict, List
 
 
 def _check_dirs(file_path):
@@ -32,6 +33,36 @@ def read_json(file_path):
     with open(file_path, 'r') as file:
         data = json.load(file)
     return data
+
+
+def is_used_by_class(
+    identifier_name: str,
+    class_structure: Dict[str, List]
+) -> bool:
+    if identifier_name in class_structure['inheritance']:
+        return True
+    if identifier_name in class_structure['compositions']:
+        return True
+    if identifier_name in class_structure['calls']:
+        return True
+    if identifier_name in class_structure['usages']:
+        return True
+    return False
+
+
+def get_dependency_type(
+    identifier_name: str,
+    class_structure: Dict[str, List]
+) -> str:
+    if identifier_name in class_structure['inheritance']:
+        return 'inheritance'
+    if identifier_name in class_structure['compositions']:
+        return 'composition'
+    if identifier_name in class_structure['calls']:
+        return 'call'
+    if identifier_name in class_structure['usages']:
+        return 'usage'
+    return 'undefined'
 
 
 def deep_dict_compare(d1, d2, excluded_keys=None) -> bool:

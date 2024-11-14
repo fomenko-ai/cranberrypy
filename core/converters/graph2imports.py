@@ -19,7 +19,10 @@ class Graph2Imports(AbstractConverter):
                     source = graph.sources[import_name]
                     if import_name.endswith('.py'):
                         continue
-                    if source.path and source.path.endswith('.py'):
+                    if source.path and (
+                        source.path.endswith('.py')
+                        or 'cpython' in source.path
+                    ):
                         _import = ImportModule(source.path)
                         if not _import.is_empty:
                             if _import.type:
@@ -32,7 +35,7 @@ class Graph2Imports(AbstractConverter):
                                 ] = _import.dirname
                             module.select_import(source.name)
 
-            module.check_class_usages()
+            module.check_usages()
 
             self.data['modules'][module.name] = {
                 "imports": module.imports,

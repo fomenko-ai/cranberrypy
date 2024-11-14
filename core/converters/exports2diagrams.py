@@ -1,25 +1,10 @@
 from typing import Tuple, List
 
 from core.converters.base import AbstractConverter
-from core.utils.func import write_json
+from core.utils.func import is_used_by_class, get_dependency_type, write_json
 
 
 class Exports2Diagrams(AbstractConverter):
-
-    @staticmethod
-    def _check_import_usage(import_item: str, class_structure: dict) -> bool:
-        """
-        Checking usage of imports by module class
-        """
-        if import_item in class_structure['inheritance']:
-            return True
-        if import_item in class_structure['compositions']:
-            return True
-        if import_item in class_structure['calls']:
-            return True
-        if import_item in class_structure['usages']:
-            return True
-        return False
 
     @staticmethod
     def _cls_key(module_name: str, class_name: str) -> str:
@@ -30,7 +15,7 @@ class Exports2Diagrams(AbstractConverter):
     @staticmethod
     def _link_to_dict(link: Tuple[str, str, str, str, bool]) -> dict:
         _from, _to, import_item, link_types, is_class = link
-        if link_types == 'is_inheritance':
+        if link_types == 'inheritance':
             return {
                 "from": _from,
                 "to": _to,
@@ -42,7 +27,7 @@ class Exports2Diagrams(AbstractConverter):
                 "type": "inheritance"
 
             }
-        elif link_types == 'is_composition':
+        elif link_types == 'composition':
             return {
                 "from": _from,
                 "to": _to,
@@ -53,7 +38,7 @@ class Exports2Diagrams(AbstractConverter):
                 "isClass": is_class,
                 "type": "composition"
             }
-        elif link_types == 'is_call':
+        elif link_types == 'call':
             return {
                 "from": _from,
                 "to": _to,
@@ -260,7 +245,7 @@ class Exports2Diagrams(AbstractConverter):
                             if (
                                 modules['classes'].get(_to)
                                 and modules['classes'][_to].get(cls)
-                                and self._check_import_usage(
+                                and is_used_by_class(
                                     import_item,
                                     modules['classes'][_to][cls]
                                 )
@@ -274,6 +259,21 @@ class Exports2Diagrams(AbstractConverter):
                                         True
                                     )
                                 )
+            for module_name, cls_dicts in modules['classes'].items():
+                for class_name in cls_dicts.keys():
+                    for to_cls, to_cls_structure in cls_dicts.items():
+                        if is_used_by_class(class_name, to_cls_structure):
+                            links.add(
+                                (
+                                    self._cls_key(module_name, class_name),
+                                    self._cls_key(module_name, to_cls),
+                                    class_name,
+                                    get_dependency_type(
+                                        class_name, to_cls_structure
+                                    ),
+                                    True
+                                )
+                            )
         self.data = {
             "nodes": self._node_params(
                 nodes, modules['dirnames'], modules['classes']

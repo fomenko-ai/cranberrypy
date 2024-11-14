@@ -1,10 +1,10 @@
 import ast
-from typing import Set, List
+from typing import Set, List, Dict
 
 from core.modules.base import AbstractModule
 from core.modules.definitions.module_class import ModuleClass
 from core.modules.statements.call import Call
-from core.utils.func import read_file
+from core.utils.func import read_file, is_used_by_class
 from main import LOGGER
 
 
@@ -91,7 +91,7 @@ class SourceModule(AbstractModule):
         return class_names
 
     def _recursion_class_usage_scan(self, node, class_names: Set[str]) -> Set[str]:
-        """Scan class usage as argument and annotation"""
+        """Scan class usage as call, argument and annotation"""
         used_classes = set()
 
         for child_node in ast.iter_child_nodes(node):
@@ -118,18 +118,17 @@ class SourceModule(AbstractModule):
         return used_classes
 
     @staticmethod
-    def _filter_usages(structure: dict, usages: Set[str]) -> List[str]:
+    def _filter_usages(
+        structure: Dict[str, List[str]],
+        usages: Set[str]
+    ) -> List[str]:
         result = []
         for class_name in usages:
-            if (
-                class_name not in structure['inheritance']
-                and class_name not in structure['compositions']
-                and class_name not in structure['calls']
-            ):
+            if not is_used_by_class(class_name, structure):
                 result.append(class_name)
         return result
 
-    def check_class_usages(self):
+    def check_usages(self):
         if self._class_nodes:
             for name, node in self._class_nodes.items():
                 class_names = self._filter_class_names(name)
