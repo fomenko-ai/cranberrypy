@@ -1,7 +1,7 @@
 from typing import Tuple, List
 
 from core.converters.base import AbstractConverter
-from core.utils.func import write_json
+from core.utils.func import is_used_by_class, get_dependency_type, write_json
 
 
 class Exports2Diagrams(AbstractConverter):
@@ -15,7 +15,7 @@ class Exports2Diagrams(AbstractConverter):
     @staticmethod
     def _link_to_dict(link: Tuple[str, str, str, str, bool]) -> dict:
         _from, _to, import_item, link_types, is_class = link
-        if link_types == 'is_inheritance':
+        if link_types == 'inheritance':
             return {
                 "from": _from,
                 "to": _to,
@@ -27,7 +27,7 @@ class Exports2Diagrams(AbstractConverter):
                 "type": "inheritance"
 
             }
-        elif link_types == 'is_composition':
+        elif link_types == 'composition':
             return {
                 "from": _from,
                 "to": _to,
@@ -38,7 +38,7 @@ class Exports2Diagrams(AbstractConverter):
                 "isClass": is_class,
                 "type": "composition"
             }
-        elif link_types == 'is_call':
+        elif link_types == 'call':
             return {
                 "from": _from,
                 "to": _to,
@@ -241,12 +241,36 @@ class Exports2Diagrams(AbstractConverter):
                                     False
                                 )
                             )
+
+                            if (
+                                modules['classes'].get(_to)
+                                and modules['classes'][_to].get(cls)
+                                and is_used_by_class(
+                                    import_item,
+                                    modules['classes'][_to][cls]
+                                )
+                            ):
+                                links.add(
+                                    (
+                                        self._cls_key(_from, import_item),
+                                        self._cls_key(_to, cls),
+                                        import_item,
+                                        link_types,
+                                        True
+                                    )
+                                )
+            for module_name, cls_dicts in modules['classes'].items():
+                for class_name in cls_dicts.keys():
+                    for to_cls, to_cls_structure in cls_dicts.items():
+                        if is_used_by_class(class_name, to_cls_structure):
                             links.add(
                                 (
-                                    self._cls_key(_from, import_item),
-                                    self._cls_key(_to, cls),
-                                    import_item,
-                                    link_types,
+                                    self._cls_key(module_name, class_name),
+                                    self._cls_key(module_name, to_cls),
+                                    class_name,
+                                    get_dependency_type(
+                                        class_name, to_cls_structure
+                                    ),
                                     True
                                 )
                             )

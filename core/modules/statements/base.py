@@ -6,7 +6,7 @@ class Base:
 
     def __init__(self, statement):
         self.statement = statement
-        self.value = statement.value
+        self.value = statement.value if hasattr(statement, 'value') else None
         self.has_call = False
         self.has_method_call = False
         self.has_class_call = False
