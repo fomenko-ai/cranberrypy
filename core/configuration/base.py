@@ -7,6 +7,9 @@ class BaseConfig:
         self.config = configparser.ConfigParser(interpolation=None)
         self.config.read(file_path)
         self.project_path = self.config.get('main', 'project_path')
+        self.relative_source_module = self.config.get(
+            'crutches', 'relative_source_module'
+        )
 
     @property
     def sections(self):
