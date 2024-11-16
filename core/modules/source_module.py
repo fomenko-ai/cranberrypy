@@ -76,9 +76,8 @@ class SourceModule(AbstractModule):
             except Exception as e:
                 LOGGER.error(f"FILE PATH: {self.file_path}. MESSAGE: {e}.")
 
-    def select_import(self, module_name):
-        if module_name in self.all_imports:
-            self.imports[module_name] = self.all_imports[module_name]
+    def get_import(self, module_name):
+        self.imports[module_name] = self.all_imports.get(module_name)
 
     def _filter_class_names(self, class_name):
         class_names = set()

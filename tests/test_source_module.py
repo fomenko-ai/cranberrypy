@@ -11,6 +11,6 @@ def module_instance():
 def test_parse_class_imports(module_instance):
     import_name = 'core.modules.source_module'
     module_instance.parse()
-    module_instance.select_import(import_name)
+    module_instance.get_import(import_name)
     assert isinstance(module_instance.imports[import_name], list)
     assert 'SourceModule' in module_instance.imports[import_name]
