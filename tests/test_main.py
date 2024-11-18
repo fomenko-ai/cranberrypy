@@ -58,6 +58,14 @@ def test_main():
                 exports2diagrams.data['links'],
                 ['fullInfo']
             )
+            assert deep_list_compare(
+                DIAGRAMS['group_keys'],
+                exports2diagrams.data['group_keys']
+            )
+            assert deep_dict_compare(
+                DIAGRAMS['group_dict'],
+                exports2diagrams.data['group_dict']
+            )
 
             diagrams2assistant.add(graph2imports.data, exports2diagrams.data)
             assert diagrams2assistant.data['dependencies']

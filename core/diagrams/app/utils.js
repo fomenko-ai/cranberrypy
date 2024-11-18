@@ -5,6 +5,11 @@ const colors = {
   darkgray: '#B0B0B0'
 };
 
+const buttonStyle = {
+    font: "bold 12px sans-serif",
+    color: "rgba(0, 0, 0, 0.87)"
+};
+
 go.Shape.defineArrowheadGeometry('NullPoint', 'm 0,0 l 0,0');
 go.Shape.defineArrowheadGeometry('Standard', 'F1 m 0,0 l 8,4 -8,4 2,-4 z');
 go.Shape.defineArrowheadGeometry('Backward', 'F1 m 8,0 l -2,4 2,4 -8,-4 z');
