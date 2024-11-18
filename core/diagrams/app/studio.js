@@ -19,24 +19,24 @@ const contextMenu =
   go.GraphObject.build("ContextMenu")
     .add(
       go.GraphObject.build("ContextMenuButton", { click: showTextInfo })
-        .add(new go.TextBlock("Text")),
+        .add(new go.TextBlock("Text", buttonStyle)),
       go.GraphObject.build("ContextMenuButton", { click: showShortInfoNode })
-        .add(new go.TextBlock("Short Info")),
+        .add(new go.TextBlock("Short Info", buttonStyle)),
       go.GraphObject.build("ContextMenuButton", { click: showFullInfoNode })
-        .add(new go.TextBlock("Full Info")),
+        .add(new go.TextBlock("Full Info", buttonStyle)),
       go.GraphObject.build("ContextMenuButton", { click: saveDiagram })
-        .add(new go.TextBlock(">    SAVE DIAGRAM    <")),
+        .add(new go.TextBlock(">    SAVE DIAGRAM    <", buttonStyle)),
     );
 
 const nodeContextMenu =
   go.GraphObject.build("ContextMenu")
     .add(
       go.GraphObject.build("ContextMenuButton", { click: showTextInfo })
-        .add(new go.TextBlock("Text")),
+        .add(new go.TextBlock("Text", buttonStyle)),
       go.GraphObject.build("ContextMenuButton", { click: showShortInfoNode })
-        .add(new go.TextBlock("Short Info")),
+        .add(new go.TextBlock("Short Info", buttonStyle)),
       go.GraphObject.build("ContextMenuButton", { click: showFullInfoNode })
-        .add(new go.TextBlock("Full Info"))
+        .add(new go.TextBlock("Full Info", buttonStyle))
     );
 
 showTextInfo()

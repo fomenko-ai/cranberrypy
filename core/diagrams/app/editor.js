@@ -30,13 +30,13 @@ const linkContextMenu =
   go.GraphObject.build("ContextMenu")
     .add(
       go.GraphObject.build("ContextMenuButton", { click: setInheritanceLink })
-        .add(new go.TextBlock("Inheritance")),
+        .add(new go.TextBlock("Inheritance", buttonStyle)),
       go.GraphObject.build("ContextMenuButton", { click: setCompositionLink })
-        .add(new go.TextBlock("Composition")),
+        .add(new go.TextBlock("Composition", buttonStyle)),
       go.GraphObject.build("ContextMenuButton", { click: setCallLink })
-        .add(new go.TextBlock("Call")),
+        .add(new go.TextBlock("Call", buttonStyle)),
       go.GraphObject.build("ContextMenuButton", { click: setUsageLink })
-        .add(new go.TextBlock("Usage"))
+        .add(new go.TextBlock("Usage", buttonStyle))
     );
 
 
