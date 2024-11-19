@@ -1,6 +1,8 @@
 let source_key = readTextFile('./temp/source/source_key');
 let downloadFilename = source_key
 let diagramData = readJsonFile(`./temp/saved/${source_key}/diagrams.json`)
+let history = [];
+let historyButtonId = "history_button";
 
 console.log(diagramData)
 
@@ -301,6 +303,49 @@ function showAllModulesHTML() {
     textNodeTemplate(nodeModuleContextMenu);
 }
 
+function showLastGroupModuleHTML(key){
+    history.pop()
+    if (history.length > 0){
+        addReturnButton()
+    } else {
+        removeReturnButton()
+    }
+    showGroupModulesByKeyHTML(key)
+}
+
+function addReturnButton(){
+    let ul = document.getElementById("contextGroupMenu");
+
+    let last_key = null
+    if (history.length > 1) {
+        last_key = history[history.length - 2]
+    } else {
+        last_key = history[history.length - 1]
+    }
+
+    let li = document.getElementById(historyButtonId);
+    if (li === null) {
+        li = document.createElement("li");
+    }
+
+    li.id = historyButtonId
+    li.className = "menu-item"
+    li.textContent = `RETURN TO ${last_key}`;
+    li.onpointerdown = function returnButton(event){
+        showLastGroupModuleHTML(last_key)
+    }
+
+    ul.appendChild(li);
+}
+
+function removeReturnButton(){
+    let ul = document.getElementById("contextGroupMenu");
+    let li = document.getElementById(historyButtonId);
+    if (li !== null) {
+        ul.removeChild(li);
+    }
+}
+
 function createNestedGroupMenu(groupDict, parentKey = '', groupKey = '') {
     let newGroupKey = `${groupKey}__${parentKey}`
     let html = `<li id="${newGroupKey}" class="menu-item" >>_${parentKey}<ul class="menu">`;
@@ -403,3 +448,27 @@ diagram.contextMenu =  contextGroupMenu
 
 let nodeDataArray = diagramData.nodes.filter(node => !node.isClass);
 diagram.model = new go.GraphLinksModel(nodeDataArray);
+
+document.addEventListener('DOMContentLoaded', function() {
+    const allListItem = document.getElementsByClassName('menu-item');
+
+    for (let i = 0; i < allListItem.length; i++) {
+        allListItem[i].addEventListener('pointerdown', function() {
+            if (
+                this.onpointerdown
+                && diagramGroupKeys.includes(this.textContent)
+            ) {
+                if (history.length > 0){
+                    if (history[history.length - 1] !== this.textContent) {
+                        history.push(this.textContent)
+                        addReturnButton()
+                    }
+                } else {
+                    history.push(this.textContent)
+                    addReturnButton()
+                }
+                console.log(history)
+            }
+        });
+    }
+});
