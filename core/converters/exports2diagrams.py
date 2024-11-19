@@ -1,4 +1,4 @@
-from typing import Tuple, List
+from typing import Tuple, List, Dict, Set
 
 from core.converters.base import AbstractConverter
 from core.utils.func import is_used_by_class, get_dependency_type, write_json
@@ -172,7 +172,7 @@ class Exports2Diagrams(AbstractConverter):
 
         return '\n'.join(info)
 
-    def _node_params(self, nodes: set, dirnames: dict, classes: dict):
+    def _get_node_params(self, nodes: set, dirnames: dict, classes: dict):
         node_params = []
         modules = set()
         groups = set()
@@ -218,7 +218,25 @@ class Exports2Diagrams(AbstractConverter):
                 }
             )
 
-        return node_params
+        return node_params, groups
+
+    @staticmethod
+    def _make_group_nested_dict(group_keys: Set[str]) -> dict:
+        nested_dict = {}
+        for key in group_keys:
+            current_level = nested_dict
+            parts = key.split("/")
+            group_parts = []
+            for part in parts:
+                if part in current_level:
+                    group_parts.append(part)
+                    current_level = current_level.get(part)
+                    continue
+                group_parts.append(part)
+                group_name = '/'.join(group_parts)
+                current_level.setdefault(part, {group_name: {}})
+                current_level = current_level.get(part)
+        return nested_dict
 
     def add(self, modules: dict):
         nodes = set()
@@ -274,13 +292,16 @@ class Exports2Diagrams(AbstractConverter):
                                     True
                                 )
                             )
+        node_params, group_keys = self._get_node_params(
+            nodes, modules['dirnames'], modules['classes']
+        )
         self.data = {
-            "nodes": self._node_params(
-                nodes, modules['dirnames'], modules['classes']
-            ),
+            "nodes": node_params,
             "links": [
                 self._link_to_dict(link) for link in links
-            ]
+            ],
+            "group_keys": list(group_keys),
+            "group_dict": self._make_group_nested_dict(group_keys),
         }
 
     def save(self):
