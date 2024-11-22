@@ -9,7 +9,7 @@ from langchain_community.vectorstores import DeepLake
 from langchain_huggingface import HuggingFaceEmbeddings
 
 from core.configuration.chat import ChatConfig
-from chat import LOGGER
+from chat import LOGGER, ADDITIONAL_PROMPT
 from core.utils.func import write_file, read_file, read_json
 from core.utils.path_switcher import PathSwitcher
 from core.assistant.chains.factory import ChainFactory
@@ -44,6 +44,14 @@ class AI:
         key2 = read_file(self._path_switcher.vectorstore_key)
         return key1 == key2
 
+    def _filter_excluded_paths(self, documents: list) -> list:
+        excluded_paths = self.config.excluded_paths.split()
+        return [
+            doc for doc in documents if not any(
+                path in doc.metadata["source"] for path in excluded_paths
+            )
+        ]
+
     def _python_code(self, path=None):
         if path is None:
             path = self.config.project_path
@@ -57,7 +65,9 @@ class AI:
         python_splitter = RecursiveCharacterTextSplitter.from_language(
             language=Language.PYTHON, chunk_size=2000, chunk_overlap=200
         )
-        docs = python_splitter.split_documents(documents)
+        docs = python_splitter.split_documents(
+            self._filter_excluded_paths(documents)
+        )
         for doc in docs:
             doc.metadata["content_type"] = 'code'
         return docs
@@ -141,6 +151,13 @@ class AI:
             raise Exception("No QA-chain.")
 
     @staticmethod
+    def _input_query():
+        query = input("\n\nQuery : ")
+        if ADDITIONAL_PROMPT:
+            query += '\n' + ADDITIONAL_PROMPT
+        return query
+
+    @staticmethod
     def _input_entity(
         is_multiple=True,
         is_necessary=True,
@@ -215,7 +232,7 @@ class AI:
         LOGGER.info("Run chat.")
         separator = ''
         while True:
-            query = input("\n\nQuery : ")
+            query = self._input_query()
             module_paths = self._input_entity(is_necessary=False)
             print(separator)
             LOGGER.info("Query received.\n")
@@ -240,7 +257,7 @@ class AI:
         for path in module_paths:
             docs.extend(self._get_documents_by_module_path(path))
         while True:
-            query = input("\n\nQuery : ")
+            query = self._input_query()
             print(separator)
             LOGGER.info("Query received.\n")
             self._invoke(docs, query)
@@ -258,7 +275,7 @@ class AI:
         for path in module_paths:
             docs.extend(self._python_code(path))
         while True:
-            query = input("\n\nQuery : ")
+            query = self._input_query()
             print(separator)
             LOGGER.info("Query received.\n")
             self._invoke(docs, query)
