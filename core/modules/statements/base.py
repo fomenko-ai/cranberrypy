@@ -12,8 +12,22 @@ class Base:
         self.has_class_call = False
         self.call_names = None
 
+        if self.is_async(statement):
+            self.value = statement.value.value
+
     def _parse(self):
         raise NotImplementedError
+
+    @staticmethod
+    def is_async(node):
+        if (
+            hasattr(node, "value")
+            and isinstance(node.value, ast.Await)
+            and hasattr(node.value, "value")
+        ):
+            return True
+        else:
+            return False
 
     def check_method_call(self, value):
         if hasattr(value.func, 'attr') and isinstance(value.func.attr, str):

@@ -5,7 +5,6 @@ from core.modules.base import AbstractModule
 from core.modules.definitions.module_class import ModuleClass
 from core.modules.statements.call import Call
 from core.utils.func import read_file, is_used_by_class
-from main import LOGGER
 
 
 class SourceModule(AbstractModule):
@@ -13,41 +12,7 @@ class SourceModule(AbstractModule):
         super().__init__(file_path)
         self.imports = None
         self.classes = None
-        self.all_imports = None
         self._class_nodes = None
-
-    def _get_relative_import_name(self, node: ast.ImportFrom) -> str:
-        try:
-            if len(self.name_list) >= node.level:
-                import_name = self.name_list[:node.level*-1]
-                if node.module is not None:
-                    import_name.append(node.module)
-                return '.'.join(import_name)
-        except Exception as e:
-            LOGGER.error(
-                f"FILE PATH: {self.file_path}. NODE: {node.module}. MESSAGE: {e}."
-            )
-        return node.module
-
-    def _import(self, node: ast.Import):
-        for alias in node.names:
-            if alias.name in self.all_imports:
-                self.all_imports[alias.name].append(alias.name)
-            else:
-                self.all_imports[alias.name] = [alias.name]
-
-    def _import_from(self, node: ast.ImportFrom):
-        import_name = node.module
-        if node.level:
-            import_name = self._get_relative_import_name(node)
-        if import_name in self.all_imports:
-            self.all_imports[import_name].extend(
-                alias.name for alias in node.names
-            )
-        else:
-            self.all_imports[import_name] = [
-                alias.name for alias in node.names
-            ]
 
     def _module(self, node: ast.Module):
         for definition in node.body:
@@ -55,6 +20,7 @@ class SourceModule(AbstractModule):
                 module_class = ModuleClass(definition)
                 self.classes[module_class.name] = module_class.to_dict()
                 self._class_nodes[module_class.name] = definition
+                self._identifiers.update(module_class.name)
 
     def _check_node(self, node):
         if isinstance(node, ast.Import):
@@ -68,13 +34,10 @@ class SourceModule(AbstractModule):
         self.imports = {}
         self.classes = {}
         self.all_imports = {}
+        self._identifiers = set()
         self._class_nodes = {}
-        if self._ast_root:
-            try:
-                for node in ast.walk(self._ast_root):
-                    self._check_node(node)
-            except Exception as e:
-                LOGGER.error(f"FILE PATH: {self.file_path}. MESSAGE: {e}.")
+
+        self.walk_root()
 
     def get_import(self, module_name):
         self.imports[module_name] = self.all_imports.get(module_name)
