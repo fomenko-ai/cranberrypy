@@ -45,7 +45,7 @@ class SourceModule(AbstractModule):
     def _filter_class_names(self, class_name):
         class_names = set()
         class_names.update(
-            set(v for _, values in self.all_imports.items() for v in values)
+            set(v for _, values in self.imports.items() for v in values)
         )
         class_names.update(
             set(key for key in self.classes.keys() if key != class_name)
@@ -66,12 +66,25 @@ class SourceModule(AbstractModule):
                         if isinstance(arg, ast.Name) and hasattr(arg, 'id'):
                             if arg.id in class_names:
                                 used_classes.add(arg.id)
-            if isinstance(child_node, ast.arguments) and isinstance(child_node.args, list):
+            if (
+                isinstance(child_node, ast.arguments)
+                and isinstance(child_node.args, list)
+            ):
                 for arg in child_node.args:
                     if isinstance(arg, ast.arg):
-                        if isinstance(arg.annotation, ast.Name) and hasattr(arg.annotation, 'id'):
+                        if (
+                            isinstance(arg.annotation, ast.Name)
+                            and hasattr(arg.annotation, 'id')
+                        ):
                             if arg.annotation.id in class_names:
                                 used_classes.add(arg.annotation.id)
+            if (
+                isinstance(child_node, ast.keyword)
+                and hasattr(child_node, 'value')
+                and isinstance(child_node.value, ast.Name)
+            ):
+                if child_node.value.id in class_names:
+                    used_classes.add(child_node.value.id)
 
             used_classes.update(
                 self._recursion_class_usage_scan(child_node, class_names)

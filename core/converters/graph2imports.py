@@ -74,8 +74,9 @@ class Graph2Imports(AbstractConverter):
     def add(self, module: SourceModule, graph: DepGraph):
         if not self.data:
             self.data = {"modules": {}, "dirnames": {}}
-        if graph and graph.sources and graph.sources.get(module.name):
+        if graph.sources.get(module.name):
             module.parse()
+
             if module.all_imports:
                 for import_name, values in module.all_imports.items():
                     if self._add_import_to_module(
@@ -88,14 +89,14 @@ class Graph2Imports(AbstractConverter):
                             f"'{import_name}' is added to imports of '{module.name}' module."
                         )
 
-            module.check_usages()
-
             if self.config.relative_source_module:
                 self._check_relative_source(
                     module=module,
                     sources=graph.sources,
                     source_module_name=self.config.relative_source_module
                 )
+
+            module.check_usages()
 
             self.data['modules'][module.name] = {
                 "imports": module.imports,

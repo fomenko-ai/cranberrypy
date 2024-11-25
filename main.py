@@ -28,27 +28,30 @@ def main():
         from core.adapter.pydeps_lib import pydeps
         graph = pydeps(config=CONFIG, workdir=project.path)
 
-        LOGGER.info('... -> Imports')
-        for file_path in project.file_paths:
-            try:
-                module = SourceModule(file_path)
-                if not module.is_empty:
-                    graph2imports.add(module, graph)
-            except Exception as e:
-                LOGGER.error(f"FILE PATH: {file_path}. MESSAGE: {e}.")
-        graph2imports.save()
+        if graph and graph.sources:
+            LOGGER.info('... -> Imports')
+            for file_path in project.file_paths:
+                try:
+                    module = SourceModule(file_path)
+                    if not module.is_empty:
+                        graph2imports.add(module, graph)
+                except Exception as e:
+                    LOGGER.error(f"FILE PATH: {file_path}. MESSAGE: {e}.")
+            graph2imports.save()
 
-        LOGGER.info('... -> Exports')
-        imports2exports.add(graph2imports.data)
-        imports2exports.save()
+            LOGGER.info('... -> Exports')
+            imports2exports.add(graph2imports.data)
+            imports2exports.save()
 
-        LOGGER.info('... -> Diagrams')
-        exports2diagrams.add(imports2exports.data)
-        exports2diagrams.save()
+            LOGGER.info('... -> Diagrams')
+            exports2diagrams.add(imports2exports.data)
+            exports2diagrams.save()
 
-        LOGGER.info('... -> Assistant')
-        diagrams2assistant.add(graph2imports.data, exports2diagrams.data)
-        diagrams2assistant.save()
+            LOGGER.info('... -> Assistant')
+            diagrams2assistant.add(graph2imports.data, exports2diagrams.data)
+            diagrams2assistant.save()
+        else:
+            LOGGER.error('No graph sources found.')
     else:
         LOGGER.error(f"File paths not found: {project.path}.")
     LOGGER.info('Cranberrypy finish')
