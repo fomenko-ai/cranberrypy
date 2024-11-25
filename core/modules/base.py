@@ -19,6 +19,7 @@ class AbstractModule:
         self.all_imports = None
         self._ast_root = None
         self._identifiers = None
+        self._variable__all__ = None
 
         if self.file_path.endswith('.py'):
             self._get_ast_root()
@@ -75,8 +76,34 @@ class AbstractModule:
                 definition,
                 (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)
             ):
-                if hasattr(definition, 'name') and definition.name:
+                if (
+                    hasattr(definition, 'name')
+                    and definition.name
+                    and isinstance(definition.name, str)
+                ):
                     self._identifiers.add(definition.name)
+
+    def _assign(self, node: ast.Assign):
+        if (
+            hasattr(node, 'targets')
+            and isinstance(node.targets, list)
+        ):
+            for target in node.targets:
+                if (
+                    isinstance(target, ast.Name)
+                    and hasattr(target, 'id')
+                    and isinstance(target.id, str)
+                ):
+                    if target.id == '__all__':
+                        if (
+                            hasattr(node, 'value')
+                            and isinstance(node.value, ast.List)
+                        ):
+                            self._variable__all__ = [
+                                elt.value for elt in node.value.elts
+                            ]
+                    else:
+                        self._identifiers.add(target.id)
 
     def _check_node(self, node):
         if isinstance(node, ast.Import):
@@ -85,6 +112,8 @@ class AbstractModule:
             self._import_from(node)
         elif isinstance(node, ast.Module):
             self._module(node)
+        elif isinstance(node, ast.Assign):
+            self._assign(node)
 
     def walk_root(self):
         if self._ast_root:
@@ -106,6 +135,9 @@ class AbstractModule:
     def identifiers(self) -> List[str]:
         if self._identifiers is None:
             return []
-        elif isinstance(self._identifiers, set):
-            return list(self._identifiers)
-        return self._identifiers
+        if self._variable__all__ is None:
+            return [
+                name for name in self._identifiers if not name.startswith('_')
+            ]
+        else:
+            return self._variable__all__
