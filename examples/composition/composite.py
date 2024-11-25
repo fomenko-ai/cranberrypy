@@ -2,6 +2,9 @@ from examples.composition.component_one import ComponentOne
 from examples.composition.component_two import ComponentTwo
 
 
+__all__ = ['Composite']
+
+
 class Composite:
     name = "Composite class"
 

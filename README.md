@@ -67,11 +67,13 @@ In the `cranberrypy.ini` file, you need to fill in the fields:
 
 * `project_path` - absolute path to the project
 
-* `excluded_paths` - paths or directories of the project that need to be excluded during analysis 
+* `relative_source_module` - name of the directory relative to which the dependencies in the project are built (necessary if name isn't included in `project_path`) 
+
+* `excluded_paths` - absolute paths or directory names of the project that need to be excluded during analysis 
 
 * `python_version` - project version
 
-* `requirements_path` - absolute path to the project file (if the path is different from project_path) 
+* `requirements_path` - absolute path to the project file (necessary if the path is different from `project_path`) 
 
 * `install_kwargs` - additional arguments for the command `pip install -r ...` when installing project dependencies (if needed)
 
@@ -82,6 +84,7 @@ In the `cranberrypy.ini` file, you need to fill in the fields:
 ```ini
 [main]
 project_path = /home/aleksei/path_to/my_project/
+relative_source_module = service
 excluded_paths =
     venv
     venv39
@@ -91,7 +94,7 @@ excluded_paths =
     /home/aleksei/path_to/my_project/.git
 
 [starter]
-python_version = 3.9
+python_version = 3.11
 requirements_path = /home/aleksei/path_to/my_project/requirements.txt
 install_kwargs = --trusted-host example.host --extra-index-url  http://example.host/lib/python
 root_directory_path = /home/aleksei/path_to/

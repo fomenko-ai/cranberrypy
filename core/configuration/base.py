@@ -7,10 +7,10 @@ class BaseConfig:
         self.config = configparser.ConfigParser(interpolation=None)
         self.config.read(file_path)
         self.project_path = self.config.get('main', 'project_path')
-        self.excluded_paths = None
         self.relative_source_module = self.config.get(
-            'crutches', 'relative_source_module'
+            'main', 'relative_source_module'
         )
+        self.excluded_paths = None
 
         self._get_excluded_paths()
 

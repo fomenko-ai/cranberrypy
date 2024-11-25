@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 
 from pydeps.depgraph import DepGraph, Source
 
@@ -11,7 +11,7 @@ from main import LOGGER
 
 class Graph2Imports(AbstractConverter):
 
-    def _add_dirname(
+    def _save_dirname(
         self,
         import_name: str,
         import_module: ImportModule
@@ -21,9 +21,11 @@ class Graph2Imports(AbstractConverter):
         else:
             self.data["dirnames"][import_name] = import_module.dirname
 
-    def _check_import_source(
+    def _add_import_to_module(
         self,
+        module: SourceModule,
         import_name: str,
+        values: List[str],
         sources: Dict[str, Source]
     ) -> bool:
         source = sources.get(import_name)
@@ -34,7 +36,12 @@ class Graph2Imports(AbstractConverter):
             ):
                 _import = ImportModule(source.path)
                 if not _import.is_empty:
-                    self._add_dirname(import_name, _import)
+                    if '*' in values:
+                        _import.parse()
+                        module.imports[import_name] = _import.identifiers
+                    else:
+                        module.imports[import_name] = values
+                    self._save_dirname(import_name, _import)
                     return True
         else:
             LOGGER.info(f"Module '{import_name}' is absent in pydeps graph.")
@@ -54,29 +61,33 @@ class Graph2Imports(AbstractConverter):
                 and relative_source_name not in module.all_imports
                 and relative_source_name in sources
             ):
-                if self._check_import_source(
+                if self._add_import_to_module(
+                    module=module,
                     import_name=relative_source_name,
+                    values=values,
                     sources=sources
                 ):
-                    module.imports.update({relative_source_name: values})
                     LOGGER.info(
-                        f"New module name '{relative_source_name}' is added to imports."
+                        f"New module name '{relative_source_name}' is added to imports of '{module.name}' module."
                     )
 
     def add(self, module: SourceModule, graph: DepGraph):
         if not self.data:
             self.data = {"modules": {}, "dirnames": {}}
-        if graph and graph.sources and graph.sources.get(module.name):
+        if graph.sources.get(module.name):
             module.parse()
+
             if module.all_imports:
-                for import_name in module.all_imports.keys():
-                    if self._check_import_source(
-                        import_name,
+                for import_name, values in module.all_imports.items():
+                    if self._add_import_to_module(
+                        module=module,
+                        import_name=import_name,
+                        values=values,
                         sources=graph.sources
                     ):
-                        module.get_import(import_name)
-
-            module.check_usages()
+                        LOGGER.info(
+                            f"'{import_name}' is added to imports of '{module.name}' module."
+                        )
 
             if self.config.relative_source_module:
                 self._check_relative_source(
@@ -84,6 +95,8 @@ class Graph2Imports(AbstractConverter):
                     sources=graph.sources,
                     source_module_name=self.config.relative_source_module
                 )
+
+            module.check_usages()
 
             self.data['modules'][module.name] = {
                 "imports": module.imports,
