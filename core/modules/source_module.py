@@ -86,6 +86,15 @@ class SourceModule(AbstractModule):
                 if child_node.value.id in class_names:
                     used_classes.add(child_node.value.id)
 
+            for attr in ['id', 'name', 'value']:
+                if (
+                    hasattr(child_node, attr)
+                    and isinstance(getattr(child_node, attr), str)
+                ):
+                    identifier = getattr(child_node, attr)
+                    if identifier in class_names:
+                        used_classes.add(identifier)
+
             used_classes.update(
                 self._recursion_class_usage_scan(child_node, class_names)
             )
