@@ -85,12 +85,16 @@ class AbstractModule:
 
     def _assign(self, node: ast.Assign):
         if (
-            hasattr(node, 'targets')
+            hasattr(node, 'col_offset')
+            and node.col_offset == 0
+            and hasattr(node, 'targets')
             and isinstance(node.targets, list)
         ):
             for target in node.targets:
                 if (
                     isinstance(target, ast.Name)
+                    and hasattr(target, 'col_offset')
+                    and target.col_offset == 0
                     and hasattr(target, 'id')
                     and isinstance(target.id, str)
                 ):
