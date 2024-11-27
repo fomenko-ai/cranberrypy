@@ -10,6 +10,8 @@ const buttonStyle = {
     color: "rgba(0, 0, 0, 0.87)"
 };
 
+const newModuleText = "module_name\n\n======================\n\nclass NewClass\n\ndef method_name"
+
 go.Shape.defineArrowheadGeometry('NullPoint', 'm 0,0 l 0,0');
 go.Shape.defineArrowheadGeometry('Standard', 'F1 m 0,0 l 8,4 -8,4 2,-4 z');
 go.Shape.defineArrowheadGeometry('Backward', 'F1 m 8,0 l -2,4 2,4 -8,-4 z');
@@ -133,7 +135,7 @@ function forceDirectedDiagram(){
 
 const diagram = new go.Diagram("DiagramDiv",
     {
-      "clickCreatingTool.archetypeNodeData": { text: "New module", color: "lightgray" },
+      "clickCreatingTool.archetypeNodeData": { text: newModuleText, color: "LightGreen" },
       "commandHandler.archetypeGroupData": { text: "New directory", isGroup: true },
       "undoManager.isEnabled": true,
       "allowTextEdit": true,
