@@ -65,9 +65,9 @@ A service for automating documentation of Python projects.
 
 In the `cranberrypy.ini` file, you need to fill in the fields:
 
-* `project_path` - absolute path to the project
+* `project_path` - absolute path to the project (directory must include `__init__.py` file, often this is the working directory)
 
-* `relative_source_module` - name of the directory relative to which the dependencies in the project are built (necessary if name isn't included in `project_path`) 
+* `relative_source_module` - name of the directory relative to which the dependencies in the project are built 
 
 * `excluded_paths` - absolute paths or directory names of the project that need to be excluded during analysis 
 
@@ -83,7 +83,7 @@ In the `cranberrypy.ini` file, you need to fill in the fields:
 
 ```ini
 [main]
-project_path = /home/aleksei/path_to/my_project/
+project_path = /home/aleksei/path_to/my_project/src/
 relative_source_module = service
 excluded_paths =
     venv
@@ -180,9 +180,15 @@ The text of modules and types of dependencies can be edited, copied and deleted.
 
 * To delete, click *Delete*.
 
+* To group modules, click *Ctrl + G*.
+
+* To ungroup modules, click *Ctrl + Shift + G*.
+
 * To cancel changes, click *Ctrl + Z*.
 
 * To reset all changes, refresh the page.
+
+[Keyboard commands in GoJS.](https://gojs.net/latest/intro/commands.html)
 
 When you save a diagram, only the modules and dependencies that are displayed on the page are written to the file.
 
