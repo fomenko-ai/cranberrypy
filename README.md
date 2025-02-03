@@ -23,8 +23,9 @@ A service for automating documentation of Python projects.
 **Docker** (running the main service module, which performs data preparation)
 
 **LLM** (project documentation generation):
-* MaziyarPanahi/Mistral-7B-Instruct-v0.3-GGUF 
-* gemini-1.5-pro 
+* Gemini
+* Custom OpenAI
+* Mistral (local)
 
 
 ## Main files, modules and directories
@@ -198,9 +199,19 @@ To view saved diagram, copy the diagram file to `temp` and specify the path to t
 
 1. In a virtual environment, install the Cranberrypy dependencies in the `ai_requirements.txt` file. 
 
-2. If you plan to use Gemini, [generate an API key](https://aistudio.google.com/app/apikey) and fill in the `google_api_key` field in the `cranberrypy.ini` file
+2. Fill assistant sections in the `cranberrypy.ini` file.
 
-   If you plan to use Mistral, you do not need to fill in the `google_api_key` field.
+   - If you plan to use Gemini:
+       * [generate an API key](https://aistudio.google.com/app/apikey)
+       * specify `gemini` type in the `assistant` section  
+       * fill API key and model name in the `gemini_assistant` sections
+   
+   - If you plan to use custom OpenAI:
+       * specify `custom_openai` type in the `assistant` section 
+       * fill url, key and model name in the `custom_assistant` sections
+   
+    - If you plan to use Mistral:
+       * specify `mistral` type in the `assistant` section
 
 3. Run `chat.py`.
 
@@ -284,5 +295,3 @@ You can view the list of available projects in `temp/saved`.
 ## Contacts
 
 Send questions, comments and suggestions to [fal@exante.eu](mailto:fal@exante.eu)
-
-![](https://files.fikus.me/hell/525814da3b75f41107aac5e7f15fadd5267a6132.jpg)

@@ -13,10 +13,10 @@ User: {query}"""
 
 
 class BaseChain:
-    model_name = 'Base'
 
     def __init__(self, config: ChatConfig):
         self.config = config
+        self.type = config.type
         self._chain = None
 
     @staticmethod
