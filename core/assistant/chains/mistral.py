@@ -7,7 +7,6 @@ from core.assistant.func import download_hf_model
 
 
 class MistralChain(BaseChain):
-    model_name = 'mistral'
 
     def _init_llm(self):
         callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])

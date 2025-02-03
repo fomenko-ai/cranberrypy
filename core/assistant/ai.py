@@ -146,7 +146,7 @@ class AI:
         self._qa_chain = ChainFactory(self.config).get_chain()
         if self._qa_chain is not None:
             self._qa_chain.create()
-            LOGGER.info(f"Created QA-chain, model: {self._qa_chain.model_name}.")
+            LOGGER.info(f"Created QA-chain, model: {self._qa_chain.type}.")
         else:
             raise Exception("No QA-chain.")
 

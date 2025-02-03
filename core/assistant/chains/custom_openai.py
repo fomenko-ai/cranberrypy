@@ -1,16 +1,17 @@
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_openai import ChatOpenAI
 
 from core.assistant.chains.base import BaseChain
 
 
-class GeminiChain(BaseChain):
+class CustomOpenAIChain(BaseChain):
 
     def _init_llm(self):
         callbacks = [StreamingStdOutCallbackHandler()]
-        return ChatGoogleGenerativeAI(
-            google_api_key=self.config.gemini.api_key,
-            model=self.config.gemini.model_name,
+        return ChatOpenAI(
+            openai_api_base=self.config.custom.api_url,
+            openai_api_key=self.config.custom.api_key,
+            model_name=self.config.custom.model_name,
             temperature=0,
             max_tokens=None,
             timeout=None,
