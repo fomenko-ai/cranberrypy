@@ -13,13 +13,18 @@ DOCKERFILE_PATH = 'Dockerfile'
 
 
 def create_dockerfile():
+    installer_command = 'pip install'
+    if CONFIG.package_installer == 'uv':
+        installer_command = 'uv pip install --system'
+
     docker_file_content = f'''
     FROM python:{CONFIG.python_version}
     WORKDIR /app
     COPY . .
     RUN pip install --upgrade pip
-    RUN pip install -r requirements.txt
-    RUN pip install -r ./temp/requirements.txt {CONFIG.install_kwargs}
+    {'RUN pip install uv' if CONFIG.package_installer == 'uv' else ''}
+    RUN {installer_command} -r requirements.txt
+    RUN {installer_command} -r ./temp/requirements.txt {CONFIG.install_kwargs}
     CMD ["python", "main.py"]
     '''
 

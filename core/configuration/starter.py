@@ -6,6 +6,7 @@ class StarterConfig(BaseConfig):
         super().__init__(file_path)
         self.python_version = self.config.get('starter', 'python_version')
         self.requirements_path = self.config.get('starter', 'requirements_path')
+        self.package_installer = self.config.get('starter', 'package_installer')
         self.install_kwargs = self.config.get('starter', 'install_kwargs')
         self.root_directory_path = self.config.get(
             'starter', 'root_directory_path'

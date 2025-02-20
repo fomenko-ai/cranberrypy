@@ -76,7 +76,9 @@ In the `cranberrypy.ini` file, you need to fill in the fields:
 
 * `requirements_path` - absolute path to the project file (necessary if the path is different from `project_path`) 
 
-* `install_kwargs` - additional arguments for the command `pip install -r ...` when installing project dependencies (if needed)
+* `package_installer` - available package installers: `pip`, `uv`.
+
+* `install_kwargs` - additional arguments for package installer command `install -r ...` (if needed)
 
 * `root_directory_path` - any shared directory for the Cranberrypy service and your project
 
@@ -97,6 +99,7 @@ excluded_paths =
 [starter]
 python_version = 3.11
 requirements_path = /home/aleksei/path_to/my_project/requirements.txt
+package_installer = uv
 install_kwargs = --trusted-host example.host --extra-index-url  http://example.host/lib/python
 root_directory_path = /home/aleksei/path_to/
 root_image_path = /app/temp/projects/
