@@ -18,7 +18,7 @@ A service for automating documentation of Python projects.
 * [langchain](https://python.langchain.com/docs/introduction/) (generating project documentation)
 
 **JavaScript:**
-* [GoJS](https://gojs.net/latest/index.html) (visualizing project dependency diagrams)
+* [GoJS](https://gojs.net/latest/index.html) (visualizing project dependency diagrams, [license](https://nwoods.com/licenses/LicenseAgreement.html))
 
 **Docker** (running the main service module, which performs data preparation)
 
@@ -290,11 +290,15 @@ To change the data source in the `temp/source/source_key` file, specify the name
 You can view the list of available projects in `temp/saved`. 
 
 ## Authors
-
-* Aleksander Gulin 
-* Aleksander Melnikov 
+ 
 * Aleksei Fomenko
 
-## Contacts
+Thanks for the initial idea, discussions and technical advice to Aleksander Gulin and Aleksander Melnikov.
 
-Send questions, comments and suggestions to [fal@exante.eu](mailto:fal@exante.eu)
+## License
+
+This project is licensed under the GNU General Public License Version 3.  
+See the [LICENSE](LICENSE) file for the full license text.
+
+
+Copyright (C) 2025 EXANTE

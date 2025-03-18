@@ -1,3 +1,5 @@
+# Copyright (C) 2025 EXANTE
+
 from core.configuration.main import MainConfig
 from core.logger import Logger
 from core.project import Project
