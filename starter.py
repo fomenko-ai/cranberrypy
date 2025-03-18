@@ -1,3 +1,5 @@
+# Copyright (C) 2025 EXANTE
+
 from core.configuration.starter import StarterConfig
 from core.logger import Logger
 from core.utils.script import Script

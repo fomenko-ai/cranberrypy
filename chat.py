@@ -1,3 +1,5 @@
+# Copyright (C) 2025 EXANTE
+
 import sys
 
 from core.configuration.chat import ChatConfig

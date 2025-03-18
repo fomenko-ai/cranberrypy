@@ -299,3 +299,6 @@ Thanks for the initial idea, discussions and technical advice to Aleksander Guli
 
 This project is licensed under the GNU General Public License Version 3.  
 See the [LICENSE](LICENSE) file for the full license text.
+
+
+Copyright (C) 2025 EXANTE
