@@ -234,6 +234,12 @@ If necessary, in `chat.py` you can change the `SYSTEM_PROMPT` or switch flags in
 
 ### Generating code according to diagram
 
+![](https://github.com/user-attachments/assets/11b057d1-b5a0-4feb-be0f-98a3d04c251e)
+
+![](https://github.com/user-attachments/assets/cfde018f-3fa8-4891-86f7-2c32b913fd24)
+
+![](https://github.com/user-attachments/assets/e9a25c8c-f82b-4e6f-b4f2-eeffe3928d69)
+
 1. To activate `generate_code_according_to_diagram` method in the `chat.py` module.
 
 2. After starting the chat, you need to enter the absolute path of the diagram JSON file.
